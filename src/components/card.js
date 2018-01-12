@@ -7,7 +7,7 @@ const cardStyle = {
     borderRadius: '8px',
     width: '85.6px',
     background: 'white',
-    position: 'relative'
+    // position: 'relative'
 };
 
 const valueStyle = {
