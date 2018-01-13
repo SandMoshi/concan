@@ -1,8 +1,8 @@
 div.Game{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    display: block;
+    /* flex-direction: row; */
+    /* justify-content: center; */
+    /* align-items: center; */
 }
 
 /* ~~~~~~~~~~~~  PLAYER'S HAND ~~~~~~~~~~~~~ */
@@ -178,4 +178,15 @@ div.Game{
     transform: translateX(11.6rem) translateY(2.2rem) rotate(37deg);
     z-index: 15;
   }
-  
+
+/* ~~~~~~~~~~~~  PLAYER CONTROLS ~~~~~~~~~~~~~ */
+div.playerControls {
+  min-width: 200px;
+  min-height: 200px;
+  border: solid black 2px;
+  float: right;
+}
+
+button.cardLeft {
+
+}
