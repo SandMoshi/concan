@@ -1,3 +1,7 @@
+html{
+  font-size: 16px;
+}
+
 .App {
   text-align: center;
 }
@@ -15,7 +19,7 @@
 }
 
 .App-title {
-  font-size: 1.5em;
+  font-size: 1.5rem;
 }
 
 .App-intro {
@@ -25,98 +29,4 @@
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-/* ~~~~~~~~~~~~  PLAYER'S HAND ~~~~~~~~~~~~~ */
-div.Game{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-div.playerHand {
-  position: relative;
-  max-width: 90vw;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-
-div.playerHand div:nth-child(1){
-  position: absolute;
-  transform: translateX(-8em) translateY(1.2em) rotate(-40deg);
-  z-index: 0;
-}
-div.playerHand div:nth-child(2){
-  position: absolute;
-  transform: translateX(-7em) translateY(0.8em) rotate(-30deg);
-  z-index: 1;
-}
-
-div.playerHand div:nth-child(3){
-  position: absolute;
-  transform: translateX(-5.5em)  translateY(0.4em) rotate(-20deg);
-  z-index: 3;
-}
-div.playerHand div:nth-child(4){
-  position: absolute;
-  transform: translateX(-4em) translateY(0.2em) rotate(-10deg);
-  z-index: 4;
-}
-div.playerHand div:nth-child(5){
-  position: absolute;
-  transform: translateX(-2.5em) translateY(0em)rotate(-5deg);
-  z-index: 5;
-}
-div.playerHand div:nth-child(6){
-  position: absolute;
-  transform: translateX(-1em) translateY(-0.1em) rotate(0deg);
-  z-index: 6;
-}
-div.playerHand div:nth-child(7){
-  position: absolute;
-  transform: translateX(0.5em) translateY(-0.25em) rotate(2.5deg);
-  z-index: 7;
-}
-div.playerHand div:nth-child(8){
-  position: absolute;
-  transform: translateX(2em) translateY(-0.15em) rotate(5deg);
-  z-index: 8;
-}
-div.playerHand div:nth-child(9){
-  position: absolute;
-  transform: translateX(3.5em) translateY(0.1em) rotate(10deg);
-  z-index: 9;
-}
-div.playerHand div:nth-child(10){
-  position: absolute;
-  transform: translateX(5em) translateY(0.4em) rotate(15deg);
-  z-index: 10;
-}
-div.playerHand div:nth-child(11){
-  position: absolute;
-  transform: translateX(6.5em) translateY(0.8em) rotate(20deg);
-  z-index: 11;
-}
-div.playerHand div:nth-child(12){
-  position: absolute;
-  transform: translateX(7.8em) translateY(1.3em) rotate(25deg);
-  z-index: 12;
-}
-div.playerHand div:nth-child(13){
-  position: absolute;
-  transform: translateX(9em) translateY(2em) rotate(30deg);
-  z-index: 13;
-}
-div.playerHand div:nth-child(14){
-  position: absolute;
-  transform: translateX(10em) translateY(2.5em) rotate(35deg);
-  z-index: 14;
-}
-div.playerHand div:nth-child(15){
-  position: absolute;
-  transform: translateX(11.1em) translateY(3.2em) rotate(37deg);
-  z-index: 15;
 }

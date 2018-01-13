@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import Card from '../components/card';
+import Card from '../card/card';
+import './game.css';
 
 class Game extends Component {
 
@@ -9,10 +10,21 @@ class Game extends Component {
     }
 
     gameCode(){
+
     }
 
     componentDidMount(){
         this.gameCode();
+        this.cardSelected();
+    }
+
+    cardSelected(){
+        var cards = document.getElementsByClassName("card");
+        [].forEach.call(cards, (card)=>{
+            card.addEventListener('click',()=>{
+                card.classList.toggle("selected");
+            })
+        })
     }
 
     render(){

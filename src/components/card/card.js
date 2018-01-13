@@ -1,13 +1,8 @@
 import React, { Component } from 'react';
-
+import './card.css';
 
 const cardStyle = {
-    height: '120px',
-    border: 'solid black 2px',
-    borderRadius: '8px',
-    width: '85.6px',
-    background: 'white',
-    // position: 'relative'
+    //
 };
 
 const valueStyle = {
