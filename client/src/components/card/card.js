@@ -35,12 +35,14 @@ class Card extends Component {
         super();
     }
 
-    componentWillMount(){
-        suiteProp = this.props.suite;
-    }
+    // componentWillMount(){
+    // }
 
+    // componentDidUpdate(){
+    // }
+    
     render(){
-        
+        suiteProp = this.props.suite;
         if( suiteProp === "h"){ return(
             <div className="card" style={cardStyle}>
               <p className="value" style={valueStyle}>{this.props.value}</p>
