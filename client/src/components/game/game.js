@@ -31,7 +31,6 @@ class Game extends Component {
 
     moveCard(direction){
         //moves cards in either direction in player's hand
-        console.log("move card to " + direction);
         var selectedCards = this.findSelectedCards();
         selectedCards.forEach((card,index) => {
             var parentList = card.parentNode;
