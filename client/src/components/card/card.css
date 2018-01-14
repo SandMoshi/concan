@@ -1,4 +1,3 @@
-
 div.card{
     height: 120px;
     border: solid black 2px;
@@ -8,8 +7,43 @@ div.card{
     user-select: none;
 }
 
+div.card p.value{
+    position: absolute;
+    top: 4px;
+    left: 5px;
+    color: black;
+    font-Size: 20px;
+    font-Weight: 600;
+    margin: 0px;
+}
+
+div.card p.suite {
+    position: absolute;
+    top: 18px;
+    left: 4px;
+    margin: 0px;
+    font-size: 24px;
+    color: red;
+}
+
 div.card.selected{
     background: #FFAFBD;  /* fallback for old browsers */
     background: -webkit-linear-gradient(to top, #ffc3a0, #FFAFBD);  /* Chrome 10-25, Safari 5.1-6 */
     background: linear-gradient(to top, #ffc3a0, #FFAFBD); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */  
 }
+
+div.card.joker p.value{
+    writing-mode: vertical-lr;
+    text-orientation: upright;
+    letter-spacing: -0.2rem;
+    transform: rotate(2deg);
+    font-size: 1rem;
+    top:30px;
+    left: 0px;
+    text-align: start;
+}
+
+div.card.joker p.suite{
+    top: 0px;
+}
+

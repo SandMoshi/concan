@@ -79,7 +79,7 @@ class Game extends Component {
                         <Card value={"K"} suite={"s"}/>
                         <Card value={"K"} suite={"d"}/>
                         <Card value={"9"} suite={"s"}/>
-                        <Card value={"9"} suite={"h"}/>
+                        <Card value={"Jo"} suite={"*"}/>
                         <Card value={"9"} suite={"c"}/>
                         <Card value={"2"} suite={"d"}/>
                         <Card value={"8"} suite={"s"}/>
