@@ -31,14 +31,34 @@ function generateNewDeck(){
     return newDeck;
 }
 
-var newDeck = generateNewDeck();
-
-var deck = [
+function shuffleDeck(){
+    var deck = newDeck;
+    var cardsremaining = deck.length;
+    var tempCard;
+    var i;
     
-]
+    //While there are unshuffled cards
+    while(cardsremaining){
+        //Choose a unshuffled card at random
+        i = Math.floor(Math.random() * cardsremaining);
+        cardsremaining--;
+
+        //Move the chosen card to end of the end of the unshuffled portion of the deck
+        //  and move the last unshuffled card to where the chosen one was
+        tempCard = deck[cardsremaining];
+        deck[cardsremaining] = deck[i]; //move card to end
+        deck[i] = tempCard; //swap the chosen card with the one at the end
+    }
+    
+    return deck;
+}
+
+
+var newDeck = generateNewDeck();
+var shuffledDeck = shuffleDeck();
 
 app.get("/api/hello", (req,response) => {
-    response.send(newDeck);
+    response.send(shuffledDeck);
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
