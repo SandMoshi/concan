@@ -40,9 +40,13 @@ class Game extends Component {
             }
             if(direction === "right"){
                 var nextCard = card.nextSibling;
-                if(nextCard !== null){
-                    var referencePosition = nextCard.nextSibling;
+                var i;
+                for(i = 0 ; i < selectedCards.length; i++){
+                    if(nextCard !== null){
+                        nextCard = nextCard.nextSibling;
+                    }
                 }
+                var referencePosition = nextCard;
                 parentList.insertBefore(card,referencePosition);
             }
         })

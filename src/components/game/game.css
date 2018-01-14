@@ -13,6 +13,7 @@ div.Game{
     display: flex;
     flex-direction: row;
     justify-content: center;
+    padding-top: 1.5rem;
   }
   
   div.playerHand div.card{

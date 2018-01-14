@@ -5,6 +5,7 @@ div.card{
     border-radius: 8px;
     width: 85.6px;
     background: white;
+    user-select: none;
 }
 
 div.card.selected{
