@@ -30,9 +30,18 @@ class Card extends Component {
     render(){
         suiteProp = this.props.suite;
         if(this.props.deck === true){ 
-            if(this.props.facedown === true){ return(
+            if(this.props.facedown === true && this.props.color === "red"){ return(
                     <div className="container">
                         <div className="card topcard facedown red"></div>
+                        <div className="card"></div>
+                        <div className="card"></div>
+                        <div className="card"></div>
+                    </div>
+                )
+            }
+            if(this.props.facedown === true && this.props.color === "blue"){ return(
+                    <div className="container">
+                        <div className="card topcard facedown blue"></div>
                         <div className="card"></div>
                         <div className="card"></div>
                         <div className="card"></div>

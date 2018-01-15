@@ -12,6 +12,7 @@ class Game extends Component {
         this.getCards = this.getCards.bind(this);
         this.state = {
             hand: [],
+            drawPileColor: "blue",
         };
     }
 
@@ -79,7 +80,7 @@ class Game extends Component {
             return results.text(); 
         })
         .then(data => {
-            var newArray = JSON.parse(data);
+            var newArray = JSON.parse(data).hand;
             // console.log(newArray);
             let timestamp = Date.now();
 
@@ -90,7 +91,10 @@ class Game extends Component {
                     <Card key={timestamp} value={card.value} suite={card.suite} />
                 )
             })
-            this.setState({hand : hand});
+
+            var drawPileColor = JSON.parse(data).drawPileColor;
+
+            this.setState({hand : hand, drawPileColor: drawPileColor});
         })
     }
 
@@ -99,7 +103,7 @@ class Game extends Component {
             <div className="Game">
                     <div className="felt">
                         <div className="deck">
-                            <Card deck={true} facedown={true} />
+                            <Card deck={true} facedown={true} color={this.state.drawPileColor} />
                         </div>
                         <div className="discard">
                              <Card value={"9"} suite={"h"}/>

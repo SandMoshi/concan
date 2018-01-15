@@ -9,6 +9,9 @@ var io = require("socket.io")(http);
 
 console.log("Hello world!");
 
+// Initialize variables
+var drawPile = [];
+
 function generateNewDeck(){
     var newDeck = [];
     var i = 2; //represents facevalue 
@@ -63,9 +66,14 @@ function shuffleDeck(newDeck){
 
 function dealCards(shuffledDeck){
     var hand = shuffledDeck.splice(0,15);
+    drawPile = shuffledDeck;
     return hand;
 }
 
+function updateDrawPileColor(){
+    //find color of top card
+    return drawPile[0].back;
+}
 
 // var newDeck = generateNewDeck();
 
@@ -78,7 +86,8 @@ app.get("/api/dealCards", (req,response) => {
     var deck = generateNewDeck();
     var shuffledDeck = shuffleDeck(deck);
     var hand = dealCards(shuffledDeck);
-    response.send(hand);
+    var drawPileColor = updateDrawPileColor();
+    response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
 // app.post("/api/dealCards", (req, response) =>{
