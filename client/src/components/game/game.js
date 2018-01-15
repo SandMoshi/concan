@@ -8,6 +8,11 @@ class Game extends Component {
         super();
         this.gameCode = this.gameCode.bind(this);
         this.moveCard = this.moveCard.bind(this);
+        this.startNewGame = this.startNewGame.bind(this);
+        this.getCards = this.getCards.bind(this);
+        this.state = {
+            hand: [],
+        };
     }
 
     gameCode(){
@@ -64,11 +69,37 @@ class Game extends Component {
         return selected;
     }
 
+    startNewGame(){
+        this.getCards();
+    }
+
+    getCards(){
+        fetch("http://localhost:3000/api/dealCards")
+        .then(results => {
+            return results.text(); 
+        })
+        .then(data => {
+            var newArray = JSON.parse(data);
+            // console.log(newArray);
+            let timestamp = Date.now();
+
+            let hand = newArray.map((card) => {
+                // console.log(card);
+                ++timestamp;
+                return(
+                    <Card key={timestamp} value={card.value} suite={card.suite} />
+                )
+            })
+            this.setState({hand : hand});
+        })
+    }
+
     render(){
         return(
             <div className="Game">
                     <div className="playerHand">
-                        <Card value={"9"} suite={"h"}/>
+                        {this.state.hand}
+                        {/* <Card value={"9"} suite={"h"}/>
                         <Card value={"A"} suite={"c"}/>
                         <Card value={"Q"} suite={"s"}/>
                         <Card value={"J"} suite={"d"}/>
@@ -82,11 +113,14 @@ class Game extends Component {
                         <Card value={"Jo"} suite={"*"}/>
                         <Card value={"9"} suite={"c"}/>
                         <Card value={"2"} suite={"d"}/>
-                        <Card value={"8"} suite={"s"}/>
+                        <Card value={"8"} suite={"s"}/> */}
                     </div>
                     <div className="playerControls">
                         <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>
                         <button className="cardRight" onClick={() => this.moveCard("right")}>Move Right</button>
+                        <br />
+                        <br />
+                        <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
                     </div>
             </div>
         );

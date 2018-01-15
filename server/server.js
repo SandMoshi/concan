@@ -1,8 +1,11 @@
+// import { Socket } from 'dgram';
 const express = require('express');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+const http = require("http").Server(app);
+var io = require("socket.io")(http);
 
 console.log("Hello world!");
 
@@ -31,7 +34,7 @@ function generateNewDeck(){
     return newDeck;
 }
 
-function shuffleDeck(){
+function shuffleDeck(newDeck){
     var deck = newDeck;
     var cardsremaining = deck.length;
     var tempCard;
@@ -53,12 +56,36 @@ function shuffleDeck(){
     return deck;
 }
 
+function dealCards(shuffledDeck){
+    var hand = shuffledDeck.splice(0,15);
+    return hand;
+}
 
-var newDeck = generateNewDeck();
-var shuffledDeck = shuffleDeck();
+
+// var newDeck = generateNewDeck();
 
 app.get("/api/hello", (req,response) => {
-    response.send(shuffledDeck);
+    response.send("hello");
 });
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.get("/api/dealCards", (req,response) => {
+    //shuffle deck
+    var deck = generateNewDeck();
+    var shuffledDeck = shuffleDeck(deck);
+    var hand = dealCards(shuffledDeck);
+    response.send(hand);
+});
+
+// app.post("/api/dealCards", (req, response) =>{
+//     console.log(req.body);
+//     io.emit("cardsDealt", req.body);
+//     response.sendStatus(200);
+// })
+
+io.on("connection", (socket) => {
+    console.log("a user connected");
+})
+
+
+
+var server = http.listen(port, () => console.log(`Listening on port ${port}`));

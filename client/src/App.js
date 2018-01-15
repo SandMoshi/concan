@@ -3,7 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 
 import Game from './components/game/game';
-
+import io from 'socket.io-client';
+let socket = io();
 
 class App extends Component {
 
@@ -15,6 +16,10 @@ class App extends Component {
     this.callApi()
       .then(res => this.setState({response: res.express}))
       .catch(err => console.log(err));
+
+    socket.on("cardsDealt", () =>{
+      alert("CARDS DEALT!");
+    });
   }
 
   callApi = async () => {
@@ -25,6 +30,7 @@ class App extends Component {
 
     return body;
   };
+
 
   render() {
     return (
