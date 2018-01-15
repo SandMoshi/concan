@@ -5,6 +5,7 @@ div.card{
     width: 85.6px;
     background: white;
     user-select: none;
+    position: relative;
 }
 
 div.card p.value{
@@ -47,3 +48,40 @@ div.card.joker p.suite{
     top: 0px;
 }
 
+/* ~~~~~~~~~~~~ DECK CARDS ~~~~~~~~~~~~~~~~~ */
+div.deck div.container{
+    position: relative;
+    max-height: 100%;
+}
+div.deck div.container div:nth-child(1){
+    position: absolute;
+    left: 12px;
+    top: 0px;
+    z-index: 4;
+}
+div.deck div.container div:nth-child(2){
+    position: absolute;
+    left: 9px;
+    top: 3px;
+    z-index: 3;
+}
+div.deck div.container div:nth-child(3){
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    z-index: 2;
+}
+div.deck div.container div:nth-child(4){
+    position: absolute;
+    left: 3px;
+    top: 9px;
+    z-index: 1;
+}
+
+div.card.facedown.red{
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAU0lEQVQoU43PwQ0AIAgDQJnAJXT/gVxCJ8BArKnKQ16knBGkl6KJKreWRq0ceS8MDaFuvCGQAe7x0GE0uDNRVd8x2ouxwwjhS+DjmOfUFRj+guYnwTswSz5375EAAAAASUVORK5CYII=);
+}
+
+div.card.facedown.blue{
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAAR0lEQVQYV2Nk0dr7n4GBgeHPNWfG////g9ms2vtAFAMjXklk1b+vOoF1gWiwTpgkzDiYBIokSAfIXpA1cJ0wO5F1YDgImyQA/yk3pCL5izwAAAAASUVORK5CYII=);
+}

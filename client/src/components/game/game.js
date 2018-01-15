@@ -97,23 +97,16 @@ class Game extends Component {
     render(){
         return(
             <div className="Game">
+                    <div className="felt">
+                        <div className="deck">
+                            <Card deck={true} facedown={true} />
+                        </div>
+                        <div className="discard">
+                             <Card value={"9"} suite={"h"}/>
+                        </div>
+                    </div>
                     <div className="playerHand">
                         {this.state.hand}
-                        {/* <Card value={"9"} suite={"h"}/>
-                        <Card value={"A"} suite={"c"}/>
-                        <Card value={"Q"} suite={"s"}/>
-                        <Card value={"J"} suite={"d"}/>
-                        <Card value={"4"} suite={"d"}/>
-                        <Card value={"5"} suite={"d"}/>
-                        <Card value={"6"} suite={"d"}/>
-                        <Card value={"K"} suite={"h"}/>
-                        <Card value={"K"} suite={"s"}/>
-                        <Card value={"K"} suite={"d"}/>
-                        <Card value={"9"} suite={"s"}/>
-                        <Card value={"Jo"} suite={"*"}/>
-                        <Card value={"9"} suite={"c"}/>
-                        <Card value={"2"} suite={"d"}/>
-                        <Card value={"8"} suite={"s"}/> */}
                     </div>
                     <div className="playerControls">
                         <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>

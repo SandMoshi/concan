@@ -191,3 +191,23 @@ div.playerControls {
 button.cardLeft {
 
 }
+
+/* ~~~~~~~~~~~~ FELT ~~~~~~~~~~~~~~~~~ */
+div.felt{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding-right: 40px;
+  padding-top: 10px;
+}
+
+/* ~~~~~~~~~~~~ DECK ~~~~~~~~~~~~~~~~~ */
+div.deck{
+  height: 140px;
+  width: 110px;
+  margin-right: 40px;
+}
+/* ~~~~~~~~~~~~ DISCARD PILE ~~~~~~~~~~~~~~~~~ */
+div.discard{
+  margin-top: 9px;
+}

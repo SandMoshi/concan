@@ -17,12 +17,6 @@ class Card extends Component {
         this.cardSelected = this.cardSelected.bind(this);
     }
 
-    // componentWillMount(){
-    // }
-
-    // componentDidUpdate(){
-    // }
-    
     cardSelected(e){
         //toggle if a card is selected
         var card = e.target;
@@ -35,7 +29,18 @@ class Card extends Component {
 
     render(){
         suiteProp = this.props.suite;
-        if( suiteProp === "h"){ return(
+        if(this.props.deck === true){ 
+            if(this.props.facedown === true){ return(
+                    <div className="container">
+                        <div className="card topcard facedown red"></div>
+                        <div className="card"></div>
+                        <div className="card"></div>
+                        <div className="card"></div>
+                    </div>
+                )
+            }
+        }
+        else if( suiteProp === "h"){ return(
             <div className="card" onClick={(e) => this.cardSelected(e)}>
               <p className="value">{this.props.value}</p>
               <p className="suite">️♥</p>️ 
