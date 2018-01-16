@@ -78,6 +78,10 @@ div.deck div.container div:nth-child(4){
     z-index: 1;
 }
 
+div.deck div.container div:nth-child(1):hover{
+    cursor: pointer;
+}
+
 div.card.facedown.red{
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAU0lEQVQoU43PwQ0AIAgDQJnAJXT/gVxCJ8BArKnKQ16knBGkl6KJKreWRq0ceS8MDaFuvCGQAe7x0GE0uDNRVd8x2ouxwwjhS+DjmOfUFRj+guYnwTswSz5375EAAAAASUVORK5CYII=);
 }

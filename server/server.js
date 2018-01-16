@@ -95,6 +95,15 @@ app.get("/api/dealCards", (req,response) => {
     response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
+app.get("/api/drawCard", (req, response) => {
+    //get remaining deck
+    var nextCard = drawPile.splice(0,1);
+    drawPile = drawPile;
+    console.log(nextCard);
+    var drawPileColor = updateDrawPileColor();
+    response.send({nextCard: nextCard, drawPileColor: drawPileColor});
+})
+
 app.post("/api/discardCard", (req, response) =>{
     console.log(req.body);
 

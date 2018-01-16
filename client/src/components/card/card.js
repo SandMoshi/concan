@@ -32,7 +32,7 @@ class Card extends Component {
         if(this.props.deck === true){ 
             if(this.props.facedown === true && this.props.color === "red"){ return(
                     <div className="container">
-                        <div className="card topcard facedown red"></div>
+                        <div className="card topcard facedown red"  onClick={(e) => this.props.drawCard()}></div>
                         <div className="card"></div>
                         <div className="card"></div>
                         <div className="card"></div>
@@ -41,7 +41,7 @@ class Card extends Component {
             }
             if(this.props.facedown === true && this.props.color === "blue"){ return(
                     <div className="container">
-                        <div className="card topcard facedown blue"></div>
+                        <div className="card topcard facedown blue"  onClick={(e) => this.props.drawCard()}></div>
                         <div className="card"></div>
                         <div className="card"></div>
                         <div className="card"></div>

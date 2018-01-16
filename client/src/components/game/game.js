@@ -16,6 +16,7 @@ class Game extends Component {
         this.startNewGame = this.startNewGame.bind(this);
         this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
+        this.drawCard = this.drawCard.bind(this);
         this.state = {
             hand: [],
             drawPile: null,
@@ -140,8 +141,31 @@ class Game extends Component {
 
             var drawPileColor = JSON.parse(data).drawPileColor;
 
-            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} />
+            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
             this.setState({hand : hand, drawPile: drawPile});
+        })
+    }
+
+    drawCard(){
+        fetch("http://localhost:3000/api/drawCard")
+        .then(results => {
+            return results.text();
+        })
+        .then(data => {
+            data = JSON.parse(data);
+            //add new card to hand
+            var nextCard = data.nextCard[0];
+            let timestamp = Date.now();
+            var hand = this.state.hand;
+            var card = <Card key={timestamp} value={nextCard.value} suit={nextCard.suit} />;
+            hand.push(card);
+
+            //update the pile color
+            var drawPileColor  = data.drawPileColor;
+            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
+            
+            //update state to force render
+            this.setState({hand: hand, drawPile: drawPile});
         })
     }
 
@@ -167,6 +191,9 @@ class Game extends Component {
                         <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
                         <br /> <br />
                         <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
+                        <br /> <br />
+                        <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
+
                     </div>
             </div>
         );
