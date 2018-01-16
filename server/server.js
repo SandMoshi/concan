@@ -7,7 +7,12 @@ const port = process.env.PORT || 5000;
 const http = require("http").Server(app);
 var io = require("socket.io")(http);
 
+var bodyParser = require('body-parser');
+
 console.log("Hello world!");
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 
 // Initialize variables
 var drawPile = [];
@@ -19,7 +24,7 @@ function generateNewDeck(){
     var k = 0; //represents red/blue
     var index = 0;
     var color = "red";
-    var suites = ["h","d","c","s"];
+    var suits = ["h","d","c","s"];
     for(k; k < 2; k++){
         for(j; j < 4; j++){
             for(i; i < 15; i++){
@@ -29,7 +34,7 @@ function generateNewDeck(){
                 else if(i===13) face = "K";
                 else if(i===14) face = "A";
                 if(k === 1){ color = "blue" }
-                newCard = {value: face, suite:suites[j], back: color}
+                newCard = {value: face, suit:suits[j], back: color}
                 newDeck.push(newCard);
             };
             i = 2;
@@ -37,7 +42,7 @@ function generateNewDeck(){
         i = 2; j = 0;
     }
     //Add 2 jokers
-    newDeck.push({value: "Jo", suite:"*", back: "red"},{value: "Jo", suite:"*",back: "blue"});
+    newDeck.push({value: "Jo", suit:"*", back: "red"},{value: "Jo", suit:"*",back: "blue"});
 
     return newDeck;
 }
@@ -90,6 +95,13 @@ app.get("/api/dealCards", (req,response) => {
     response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
+app.post("/api/discardCard", (req, response) =>{
+    console.log(req.body);
+
+    io.emit('cardDiscarded', req.body);
+    response.sendStatus(200);
+})
+
 // app.post("/api/dealCards", (req, response) =>{
 //     console.log(req.body);
 //     io.emit("cardsDealt", req.body);
@@ -99,7 +111,5 @@ app.get("/api/dealCards", (req,response) => {
 io.on("connection", (socket) => {
     console.log("a user connected");
 })
-
-
 
 var server = http.listen(port, () => console.log(`Listening on port ${port}`));

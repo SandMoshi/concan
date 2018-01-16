@@ -1,6 +1,6 @@
 //GENERATE A NEW PLAYING CARD DOM ELEMENT
 //To use this component you must use a react tag as follows
-// <Card value={"9"} suite={"h"}/>
+// <Card value={"9"} suit={"h"}/>
 
 import React, { Component } from 'react';
 import './card.css';
@@ -9,7 +9,7 @@ const blackInk = {
     color: 'black'
 }
 
-var suiteProp;
+var suitProp;
 
 class Card extends Component {
     constructor(props){
@@ -20,7 +20,7 @@ class Card extends Component {
     cardSelected(e){
         //toggle if a card is selected
         var card = e.target;
-        if(card.classList.contains("value") || card.classList.contains("suite")){
+        if(card.classList.contains("value") || card.classList.contains("suit")){
             card = card.parentElement;
         }
         card.classList.toggle("selected");
@@ -28,7 +28,7 @@ class Card extends Component {
 
 
     render(){
-        suiteProp = this.props.suite;
+        suitProp = this.props.suit;
         if(this.props.deck === true){ 
             if(this.props.facedown === true && this.props.color === "red"){ return(
                     <div className="container">
@@ -49,38 +49,43 @@ class Card extends Component {
                 )
             }
         }
-        else if( suiteProp === "h"){ return(
-            <div className="card" onClick={(e) => this.cardSelected(e)}>
+        else if( suitProp === "" ){ return(
+            <div className="card" data-value="" data-suit="" >
+            </div>
+            )
+        }
+        else if( suitProp === "h"){ return(
+            <div className="card" data-value={this.props.value} data-suit={suitProp} onClick={(e) => this.cardSelected(e)}>
               <p className="value">{this.props.value}</p>
-              <p className="suite">️♥</p>️ 
+              <p className="suit">️♥</p>️ 
             </div>
             )
         }
-        else if( suiteProp === "d"){ return(
-            <div className="card" onClick={(e) => this.cardSelected(e)}>
+        else if( suitProp === "d"){ return(
+            <div className="card" data-value={this.props.value} data-suit={suitProp}  onClick={(e) => this.cardSelected(e)}>
               <p className="value" >{this.props.value}</p>
-              <p className="suite" >♦️</p>️ 
+              <p className="suit" >♦️</p>️ 
             </div>
             )
         }
-         else if( suiteProp === "s"){ return(
-            <div className="card" onClick={(e) => this.cardSelected(e)}>
+         else if( suitProp === "s"){ return(
+            <div className="card" data-value={this.props.value} data-suit={suitProp}  onClick={(e) => this.cardSelected(e)}>
               <p className="value" >{this.props.value}</p>
-              <p className="suite" style={Object.assign({}, blackInk)}>♠️</p>️ 
+              <p className="suit" style={Object.assign({}, blackInk)}>♠️</p>️ 
             </div>
             )
         }
-        else if( suiteProp === "c"){ return(
-            <div className="card" onClick={(e) => this.cardSelected(e)}>              
+        else if( suitProp === "c"){ return(
+            <div className="card" data-value={this.props.value} data-suit={suitProp}  onClick={(e) => this.cardSelected(e)}>              
               <p className="value" >{this.props.value}</p>
-              <p className="suite" style={Object.assign({}, blackInk)}>♣️</p>️ 
+              <p className="suit" style={Object.assign({}, blackInk)}>♣️</p>️ 
             </div>
             )
         }
-        else if( suiteProp === "*"){ return(
-            <div className="card joker" onClick={(e) => this.cardSelected(e)}>  
+        else if( suitProp === "*"){ return(
+            <div className="card joker" data-value={"Jo"} data-suit={"*"} onClick={(e) => this.cardSelected(e)}>  
               <p className="value">Joker</p>
-              <p className="suite" style={Object.assign({}, blackInk)}>&#9733;</p>️ 
+              <p className="suit" style={Object.assign({}, blackInk)}>&#9733;</p>️ 
             </div>
             )
         }

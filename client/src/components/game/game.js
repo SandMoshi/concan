@@ -1,6 +1,11 @@
 import React, {Component} from 'react';
 import Card from '../card/card';
 import './game.css';
+// import io from 'socket.io-client';
+// import io from 'socket.io-client';
+
+const io = require('socket.io-client');
+const socket = io()  
 
 class Game extends Component {
 
@@ -10,9 +15,12 @@ class Game extends Component {
         this.moveCard = this.moveCard.bind(this);
         this.startNewGame = this.startNewGame.bind(this);
         this.getCards = this.getCards.bind(this);
+        this.updateDiscard = this.updateDiscard.bind(this);
         this.state = {
             hand: [],
             drawPile: null,
+            discardsuit: "",
+            discardValue: "",
         };
     }
 
@@ -23,6 +31,7 @@ class Game extends Component {
     componentDidMount(){
         this.gameCode();
         this.cardSelected();
+        socket.on("cardDiscarded", this.updateDiscard);
     }
 
     cardSelected(){
@@ -82,11 +91,33 @@ class Game extends Component {
             return;
         }
         //TODO make sure a card has been drawn first before discarding !!!!!!!!!!!!!!!!!!!!!!!!!
-
+        console.log(selected[0]);
+        var faceValue = selected[0].dataset.value;
+        var suitValue = selected[0].dataset.suit;
         //move from hand to discard pile
-
+        fetch("http://localhost:3000/api/discardCard", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                value: faceValue, 
+                suit: suitValue,
+                player: "1",
+            }),
+        })
         //remove card from the DOM
         selected[0].remove();
+    }
+
+    updateDiscard(data){
+        console.log(data);
+        // data = JSON.parse(data);
+        this.setState({
+            discardValue: data.value,
+            discardsuit: data.suit
+        })
     }
 
     getCards(){
@@ -103,7 +134,7 @@ class Game extends Component {
                 // console.log(card);
                 ++timestamp;
                 return(
-                    <Card key={timestamp} value={card.value} suite={card.suite} />
+                    <Card key={timestamp} value={card.value} suit={card.suit}  />
                 )
             })
 
@@ -122,7 +153,7 @@ class Game extends Component {
                             {this.state.drawPile}
                         </div>
                         <div className="discard">
-                             <Card value={"9"} suite={"h"}/>
+                             <Card value={this.state.discardValue} suit={this.state.discardsuit}/>
                         </div>
                     </div>
                     <div className="playerHand">

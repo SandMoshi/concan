@@ -18,7 +18,7 @@ div.card p.value{
     margin: 0px;
 }
 
-div.card p.suite {
+div.card p.suit {
     position: absolute;
     top: 18px;
     left: 4px;
@@ -44,7 +44,7 @@ div.card.joker p.value{
     text-align: start;
 }
 
-div.card.joker p.suite{
+div.card.joker p.suit{
     top: 0px;
 }
 
