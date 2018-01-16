@@ -12,7 +12,7 @@ class Game extends Component {
         this.getCards = this.getCards.bind(this);
         this.state = {
             hand: [],
-            drawPileColor: "blue",
+            drawPile: null,
         };
     }
 
@@ -74,6 +74,21 @@ class Game extends Component {
         this.getCards();
     }
 
+    discardSelected(){
+        var selected = this.findSelectedCards();
+        //check to make sure only one card is selected
+        if(selected.length !== 1){
+            alert("You must discard exactly one card.");
+            return;
+        }
+        //TODO make sure a card has been drawn first before discarding !!!!!!!!!!!!!!!!!!!!!!!!!
+
+        //move from hand to discard pile
+
+        //remove card from the DOM
+        selected[0].remove();
+    }
+
     getCards(){
         fetch("http://localhost:3000/api/dealCards")
         .then(results => {
@@ -94,7 +109,8 @@ class Game extends Component {
 
             var drawPileColor = JSON.parse(data).drawPileColor;
 
-            this.setState({hand : hand, drawPileColor: drawPileColor});
+            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} />
+            this.setState({hand : hand, drawPile: drawPile});
         })
     }
 
@@ -103,7 +119,7 @@ class Game extends Component {
             <div className="Game">
                     <div className="felt">
                         <div className="deck">
-                            <Card deck={true} facedown={true} color={this.state.drawPileColor} />
+                            {this.state.drawPile}
                         </div>
                         <div className="discard">
                              <Card value={"9"} suite={"h"}/>
@@ -118,6 +134,8 @@ class Game extends Component {
                         <br />
                         <br />
                         <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
+                        <br /> <br />
+                        <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
                     </div>
             </div>
         );
