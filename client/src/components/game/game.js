@@ -148,10 +148,22 @@ class Game extends Component {
 
     drawCard(){
         fetch("http://localhost:3000/api/drawCard")
-        .then(results => {
-            return results.text();
+        .then(response => {
+            console.log(response);
+            console.log(response.ok);
+            if(!response.ok){
+                if(response.status === 901){
+                    alert("Cannot draw card right now. You cannot have more than 14 cards in your hand.");
+                }
+                if(response.status === 902){
+                    alert("Player has already drawn a card this turn!");
+                }
+                return;
+            }
+            return response.text();
         })
         .then(data => {
+            console.log(data);
             data = JSON.parse(data);
             //add new card to hand
             var nextCard = data.nextCard[0];
@@ -166,6 +178,9 @@ class Game extends Component {
             
             //update state to force render
             this.setState({hand: hand, drawPile: drawPile});
+        })
+        .catch(()=>{
+            // do nothing
         })
     }
 

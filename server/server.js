@@ -16,6 +16,15 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 // Initialize variables
 var drawPile = [];
+var count = {
+    p1 : 0,
+    p2 : 0,
+    p3 : 0,
+    p4 : 0,
+}
+var hasDrawn = false;
+var player = "p1";
+var dealer = "p1";
 
 function generateNewDeck(){
     var newDeck = [];
@@ -72,6 +81,9 @@ function shuffleDeck(newDeck){
 function dealCards(shuffledDeck){
     var hand = shuffledDeck.splice(0,15);
     drawPile = shuffledDeck;
+    var count = cardCount(null,"newGame");
+    var count = cardCount(dealer,"newGameDealer");
+    // console.log("Count is : " + count.p1);
     return hand;
 }
 
@@ -95,18 +107,56 @@ app.get("/api/dealCards", (req,response) => {
     response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
+function cardCount(player,action){
+    console.log("Current Player: " + player);
+    console.log("Current Dealer: " + dealer);
+    if (action === "newGame"){
+        for (var key in count){
+            count[key] = 14;
+        }
+    }
+    if(player){
+        if (action === "newGameDealer"){
+            count[player] = 15;
+        }
+        else if (action === "increase"){
+            count[player] = count[player] + 1;
+        }
+        else if (action === "decrease"){
+            count[player] = count[player] -1;
+        }
+    }
+    console.log("P1 Card Count is : " + count.p1);
+    console.log("P2 Card Count is : " + count.p2);
+    console.log("P3 Card Count is : " + count.p3);
+    console.log("P4 Card Count is : " + count.p4);
+    return count;
+}
+
 app.get("/api/drawCard", (req, response) => {
     //get remaining deck
-    var nextCard = drawPile.splice(0,1);
-    drawPile = drawPile;
-    console.log(nextCard);
-    var drawPileColor = updateDrawPileColor();
-    response.send({nextCard: nextCard, drawPileColor: drawPileColor});
+    if(count[player] >= 14){
+        console.log("Your hand is full and cannot draw!");
+        response.status(901).send("Your hand is full and cannot draw!");
+    }
+    else if (hasDrawn){
+        console.log("Player has already drawn once this turn!");
+        response.status(902).send("Player has already drawn once this turn!");
+    }
+    else{
+        count = cardCount(player,"increase");
+        hasDrawn = true;
+        drawPile = drawPile;
+        console.log(nextCard);
+        var drawPileColor = updateDrawPileColor();
+        var nextCard = drawPile.splice(0,1);
+        response.send({nextCard: nextCard, drawPileColor: drawPileColor});
+    }
 })
 
 app.post("/api/discardCard", (req, response) =>{
     console.log(req.body);
-
+    count = cardCount(player,"decrease");
     io.emit('cardDiscarded', req.body);
     response.sendStatus(200);
 })
