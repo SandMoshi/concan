@@ -2,14 +2,17 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+import Lobby from './components/lobby/lobby';
 import Game from './components/game/game';
 import io from 'socket.io-client';
+
 let socket = io();
 
 class App extends Component {
 
   state = {
-    response: ''
+    response: '',
+    lobby: true,
   };
 
   componentDidMount(){
@@ -19,6 +22,9 @@ class App extends Component {
 
     socket.on("cardsDealt", () =>{
       alert("CARDS DEALT!");
+    });
+    socket.on("playerJoined", () => {
+      alert("hi!");
     });
   }
 
@@ -40,6 +46,7 @@ class App extends Component {
           <h1 className="App-title">Welcome to Concan</h1>
           <p className="App-intro">{this.state.response}</p>
         </header>
+        <Lobby />
         <Game />
       </div>
     );

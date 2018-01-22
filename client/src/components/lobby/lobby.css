@@ -1,0 +1,24 @@
+.lobby{
+    width: 100vw;
+    height: 100vw;
+    background: white;
+}
+
+.lobby.hidden{
+    display: none;
+}
+
+button{
+    margin-top: 20px;
+    margin-right: 20px;
+}
+
+input{
+    margin-top: 20px;
+    height: 40px;
+    font-size: 24px;
+}
+
+.lobby2{
+    margin-top: 20px;
+}

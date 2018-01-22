@@ -26,6 +26,14 @@ var hasDrawn = false;
 var player = "p1";
 var dealer = "p1";
 
+const newPlayer = (socket,player) =>{
+    io.on('connect', () => {
+        io.emit('new-player',{
+            playerName: String(socket.id)
+        })
+    })
+}
+
 function generateNewDeck(){
     var newDeck = [];
     var i = 2; //represents facevalue 
@@ -107,6 +115,31 @@ app.get("/api/dealCards", (req,response) => {
     response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
+app.get("/api/getPlayerName", (req, response) =>{
+    
+});
+
+app.get("/api/chooseDealer", (req, response) => {
+    if(dealer === "p1"){
+        //get name of the dealer
+        var dealerName = "1";
+    }
+    if(dealer === "p2"){
+        //get name of the dealer
+        var dealerName = "1";
+    }
+    if(dealer === "p3"){
+        //get name of the dealer
+        var dealerName = "1";
+    }
+    if(dealer === "p4"){
+        //get name of the dealer
+        var dealerName = "1";
+    }
+    response.status(200);
+    response.send({dealer: dealer, dealerName: dealerName});
+});
+
 function cardCount(player,action){
     console.log("Current Player: " + player);
     console.log("Current Dealer: " + dealer);
@@ -126,10 +159,10 @@ function cardCount(player,action){
             count[player] = count[player] -1;
         }
     }
-    console.log("P1 Card Count is : " + count.p1);
-    console.log("P2 Card Count is : " + count.p2);
-    console.log("P3 Card Count is : " + count.p3);
-    console.log("P4 Card Count is : " + count.p4);
+    // console.log("P1 Card Count is : " + count.p1);
+    // console.log("P2 Card Count is : " + count.p2);
+    // console.log("P3 Card Count is : " + count.p3);
+    // console.log("P4 Card Count is : " + count.p4);
     return count;
 }
 
@@ -167,8 +200,70 @@ app.post("/api/discardCard", (req, response) =>{
 //     response.sendStatus(200);
 // })
 
+
 io.on("connection", (socket) => {
-    console.log("a user connected");
+    socket.on("createNewRoom", (name) =>{
+        CreateNewRoom();
+        console.log("NEW ROOM CREATED!");
+    })
+
+    socket.on("joinRoomRequest", (name, room) =>{
+        // console.log(name, room);
+        console.log("Request to join room");
+        var data = {
+            name: name,
+            room: room
+        };
+        joinRoom(data);
+    })
+    
+    socket.on('new-player', state => {
+        console.log("a new user connected with state:", state);
+        // players[socket.id] = state;
+        // io.emit('update-players', players);
+    })
+    
+    socket.on('disconnect', state => {
+        // delete players[socket.id];
+        // io.emit('update-players', players);
+    })
+
+    function CreateNewRoom() {
+        //Get unique room number
+        var thisGameId = (Math.random() * 1000000 ) | 0;
+    
+        //Send the room number to the browser
+        socket.emit('newRoomCreated', {roomID: thisGameId, mySocketID: socket.id});
+        //Tell socket.io this user is joining this room
+        socket.join(thisGameId.toString());
+        console.log(thisGameId);
+    };
+
+    function joinRoom(data){
+        console.log("trying to join room:" + data.room);
+        data.socketID = socket.id;
+        console.log(data);
+        socket.join(data.room, () => {
+            let rooms = Object.keys(socket.rooms);
+            //Let the clients know a player has joined
+            // io.emit("playerJoined");
+            console.log(rooms);
+            console.log(data.name + " JOINED room " + data.room);
+            showClients(data.room);
+            io.emit("playerJoined");
+        });
+    }
+
+    function showClients(room){
+        var roomClients = io.of('/').in(room).clients((err, data)=>{
+            if (err) throw err;
+            console.log("The people in room ", room, " are: ", data);
+        })
+    }
 })
+
+io.on("error", (err) =>{
+    console.log(err);
+});
 
 var server = http.listen(port, () => console.log(`Listening on port ${port}`));

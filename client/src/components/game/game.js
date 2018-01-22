@@ -17,11 +17,16 @@ class Game extends Component {
         this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
         this.drawCard = this.drawCard.bind(this);
+        this.getDealer = this.getDealer.bind(this);
+        this.getPlayer = this.getPlayer.bind(this);
+        this.playerJoined = this.playerJoined.bind(this);
         this.state = {
             hand: [],
             drawPile: null,
             discardsuit: "",
             discardValue: "",
+            dealer: null,
+            playerName: <p className="playerName">Connected Player: ______ </p>,
         };
     }
 
@@ -33,6 +38,15 @@ class Game extends Component {
         this.gameCode();
         this.cardSelected();
         socket.on("cardDiscarded", this.updateDiscard);
+        // socket.on("playerJoined", this.playerJoined);
+        socket.on("playerJoined", () => {
+            alert("hi!");
+            console.log("YAY!!!!!!!!!!!!!!!!!!!!");
+        });
+    }
+
+    playerJoined(){
+        console.log("YAY PLAYER joined!");
     }
 
     cardSelected(){
@@ -81,9 +95,11 @@ class Game extends Component {
     }
 
     startNewGame(){
+        this.getDealer();
         this.getCards();
     }
 
+    
     discardSelected(){
         var selected = this.findSelectedCards();
         //check to make sure only one card is selected
@@ -111,13 +127,49 @@ class Game extends Component {
         //remove card from the DOM
         selected[0].remove();
     }
-
+    
     updateDiscard(data){
         console.log(data);
         // data = JSON.parse(data);
         this.setState({
             discardValue: data.value,
             discardsuit: data.suit
+        })
+    }
+    
+    getPlayer(){
+        fetch("http://localhost:3000/api/getPlayerName")
+            .then(response => {
+                if(!response.ok){
+                    alert("There was an error. Code 002");
+                    return;
+                }
+                else{
+                    return response.text();      
+                }
+            })
+            .then(data => {
+                data = JSON.parse(data);
+                var playerName = data.playerName;
+                this.setState({playerName : playerName});
+            })
+    }
+
+    getDealer(){
+        fetch("http://localhost:3000/api/chooseDealer")
+        .then(response => {
+            // console.log(response);
+            if(!response.ok){
+                alert("There was an error. Code 001.");
+                return;
+            }
+            return response.text();
+        })
+        .then(data => {
+            data = JSON.parse(data);
+            var dealer = <p className="dealer">Player {data.dealerName} is the dealer. You are player {this.state.playerName}.</p>;
+            //update the state to force render
+            this.setState({dealer: dealer});
         })
     }
 
@@ -149,8 +201,8 @@ class Game extends Component {
     drawCard(){
         fetch("http://localhost:3000/api/drawCard")
         .then(response => {
-            console.log(response);
-            console.log(response.ok);
+            // console.log(response);
+            // console.log(response.ok);
             if(!response.ok){
                 if(response.status === 901){
                     alert("Cannot draw card right now. You cannot have more than 14 cards in your hand.");
@@ -187,6 +239,7 @@ class Game extends Component {
     render(){
         return(
             <div className="Game">
+                    {this.state.playerName}
                     <div className="felt">
                         <div className="deck">
                             {this.state.drawPile}
@@ -208,7 +261,8 @@ class Game extends Component {
                         <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
                         <br /> <br />
                         <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
-
+                        <br />
+                        {this.state.dealer}
                     </div>
             </div>
         );
