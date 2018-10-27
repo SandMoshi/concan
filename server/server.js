@@ -210,15 +210,20 @@ io.on("connection", (socket) => {
     })
 
     socket.on("joinRoomRequest", (name, room) =>{
-        // console.log(name, room);
-        console.log("Request to join room");
+        console.log("Request to join room ", room, " by ", name);
         var data = {
             name: name,
             room: room
         };
         joinRoom(data);
+        socket.emit('joinRoomSuccess', room);
     })
     
+    socket.on("pingEveryone", (data) => {
+        console.log("Ping attempted by ", data.name, " to room ", data.roomID);
+        socket.broadcast.to(data.roomID).emit('pingEveryone', data.name);
+    })
+
     socket.on('new-player', state => {
         console.log("a new user connected with state:", state);
         // players[socket.id] = state;
@@ -246,13 +251,14 @@ io.on("connection", (socket) => {
         data.socketID = socket.id;
         console.log(data);
         socket.join(data.room, () => {
-            let rooms = Object.keys(socket.rooms);
+            console.log("successfully joined room ", data.room)
+            // let rooms = Object.keys(socket.rooms);
             //Let the clients know a player has joined
             // io.emit("playerJoined");
-            console.log(rooms);
-            console.log(data.name + " JOINED room " + data.room);
-            socket.to(data.room).emit("playerJoined");
-            showClients(data.room);
+            // console.log(rooms);
+            // console.log(data.name + " JOINED room " + data.room);
+            // socket.to(data.room).emit("playerJoined");
+            // showClients(data.room);
         });
     }
 

@@ -27,25 +27,32 @@ class Lobby extends Component{
             console.log("newRoomCreated");
             console.log(data);
             var roomID = data.roomID;
+            this.props.saveRoomNumber(roomID);
             this.setState({currentRoom: roomID, author: data.author});
         });
+
+        this.socket.on("joinRoomSuccess", (roomID) => {
+            this.props.saveRoomNumber(roomID);
+        })
     }
 
     createNewRoom(e){
         e.preventDefault();
         //grab the data from the form
         this.setState({visible: false});
-        var guestName = this.guestName.value;
-        console.log("guestName:", guestName);
-        this.socket.emit("createNewRoom", guestName);
+        var userName = this.guestName.value;
+        console.log("guestName:", userName);
+        this.socket.emit("createNewRoom", userName);
+        this.props.setName(userName);
     }
     
     joinRoom(e){
         e.preventDefault();
         this.setState({visible: false});
-        var guestName = this.guestName.value;
+        var userName = this.guestName.value;
         var room = this.room.value;
-        this.socket.emit("joinRoomRequest",guestName, room);
+        this.socket.emit("joinRoomRequest", userName, room);
+        this.props.setName(userName);
     }
 
 

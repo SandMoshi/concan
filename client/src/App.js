@@ -13,6 +13,8 @@ class App extends Component {
   state = {
     response: '',
     lobby: true,
+    userName: "",
+    roomID: "",
   };
 
   componentDidMount(){
@@ -28,6 +30,11 @@ class App extends Component {
       alert("hi!");
       console.log("YAY!!!!!!!!!!!!!!!!!!!!");
     });
+
+    socket.on("pingEveryone", (name) => {
+      console.log("Ping Received from ", name);
+      alert(name + " pinged you!");
+    });
   }
 
   callApi = async () => {
@@ -39,6 +46,17 @@ class App extends Component {
     return body;
   };
 
+  setName = (name) => {
+    this.setState({
+      userName: name,
+    })
+  }
+
+  saveRoomNumber = (roomID) => {
+    this.setState({
+      roomID: roomID,
+    })
+  }
 
   render() {
     return (
@@ -48,8 +66,8 @@ class App extends Component {
           <h1 className="App-title">Welcome to Concan</h1>
           <p className="App-intro">{this.state.response}</p>
         </header>
-        <Lobby socket={socket} />
-        <Game socket={socket} />
+        <Lobby socket={socket} setName={this.setName} userName={this.state.userName} saveRoomNumber={this.saveRoomNumber}/>
+        <Game socket={socket} userName={this.state.userName} roomID={this.state.roomID}/>
       </div>
     );
   }

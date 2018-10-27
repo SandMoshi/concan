@@ -89,6 +89,12 @@ class Game extends Component {
         this.getCards();
     }
 
+    pingEveryone = () =>{
+        this.socket.emit('pingEveryone', {
+            name: this.props.userName,
+            roomID: this.props.roomID,
+        });
+    }
     
     discardSelected(){
         var selected = this.findSelectedCards();
@@ -242,6 +248,7 @@ class Game extends Component {
                         {this.state.hand}
                     </div>
                     <div className="playerControls">
+                        <button className="ping" onClick={() => this.pingEveryone()}>Ping Everyone!</button>
                         <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>
                         <button className="cardRight" onClick={() => this.moveCard("right")}>Move Right</button>
                         <br />
