@@ -1,17 +1,12 @@
 import React, {Component} from 'react';
 import Card from '../card/card';
 import './game.css';
-// import io from 'socket.io-client';
-// import io from 'socket.io-client';
-
-const io = require('socket.io-client');
-const socket = io()  
 
 class Game extends Component {
 
     constructor(props){
         super();
-        this.gameCode = this.gameCode.bind(this);
+        this.socket = null;
         this.moveCard = this.moveCard.bind(this);
         this.startNewGame = this.startNewGame.bind(this);
         this.getCards = this.getCards.bind(this);
@@ -26,23 +21,18 @@ class Game extends Component {
             discardsuit: "",
             discardValue: "",
             dealer: null,
-            playerName: <p className="playerName">Connected Player: ______ </p>,
+            playerName: "",
         };
     }
 
-    gameCode(){
-
+    componentWillMount(){
+        this.socket = this.props.socket;
     }
 
     componentDidMount(){
-        this.gameCode();
         this.cardSelected();
-        socket.on("cardDiscarded", this.updateDiscard);
-        // socket.on("playerJoined", this.playerJoined);
-        socket.on("playerJoined", () => {
-            alert("hi!");
-            console.log("YAY!!!!!!!!!!!!!!!!!!!!");
-        });
+        this.socket.on("cardDiscarded", this.updateDiscard);
+        this.socket.on("playerJoined", this.playerJoined);
     }
 
     playerJoined(){
@@ -239,7 +229,7 @@ class Game extends Component {
     render(){
         return(
             <div className="Game">
-                    {this.state.playerName}
+                    <p className="playerName">Connected Player: {this.state.playerName}</p>     
                     <div className="felt">
                         <div className="deck">
                             {this.state.drawPile}

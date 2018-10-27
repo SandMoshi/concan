@@ -1,18 +1,17 @@
-// import { Socket } from 'dgram';
 const express = require('express');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-const http = require("http").Server(app);
-var io = require("socket.io")(http);
+const server = require("http").createServer();
+var io = require("socket.io")(server);
 
 var bodyParser = require('body-parser');
 
 console.log("Hello world!");
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({extended: false}));
 
 // Initialize variables
 var drawPile = [];
@@ -202,8 +201,11 @@ app.post("/api/discardCard", (req, response) =>{
 
 
 io.on("connection", (socket) => {
+
+    console.log("we are connected.");
+
     socket.on("createNewRoom", (name) =>{
-        CreateNewRoom();
+        CreateNewRoom(name);
         console.log("NEW ROOM CREATED!");
     })
 
@@ -228,12 +230,12 @@ io.on("connection", (socket) => {
         // io.emit('update-players', players);
     })
 
-    function CreateNewRoom() {
+    function CreateNewRoom(name) {
         //Get unique room number
         var thisGameId = (Math.random() * 1000000 ) | 0;
     
         //Send the room number to the browser
-        socket.emit('newRoomCreated', {roomID: thisGameId, mySocketID: socket.id});
+        socket.emit('newRoomCreated', {roomID: thisGameId, mySocketID: socket.id, author: name});
         //Tell socket.io this user is joining this room
         socket.join(thisGameId.toString());
         console.log(thisGameId);
@@ -249,8 +251,8 @@ io.on("connection", (socket) => {
             // io.emit("playerJoined");
             console.log(rooms);
             console.log(data.name + " JOINED room " + data.room);
+            socket.to(data.room).emit("playerJoined");
             showClients(data.room);
-            io.emit("playerJoined");
         });
     }
 
@@ -266,4 +268,4 @@ io.on("error", (err) =>{
     console.log(err);
 });
 
-var server = http.listen(port, () => console.log(`Listening on port ${port}`));
+server.listen(port, () => console.log(`Listening on port ${port}`));

@@ -3,13 +3,10 @@
 import React, { Component } from 'react';
 import './lobby.css';
 
-const io = require('socket.io-client');
-const socket = io()
-
-
 class Lobby extends Component{
     constructor(props){
         super();
+        this.socket = null;
         this.createNewRoom = this.createNewRoom.bind(this);
         this.joinRoom = this.joinRoom.bind(this);
         this.state = {
@@ -19,20 +16,28 @@ class Lobby extends Component{
 
     }
 
+    componentWillMount(){
+        this.socket = this.props.socket;
+    }
+
+    componentDidMount(){
+        console.log("yay");
+        console.log(this.socket);
+        this.socket.on("newRoomCreated", (data) => {
+            console.log("newRoomCreated");
+            console.log(data);
+            var roomID = data.roomID;
+            this.setState({currentRoom: roomID, author: data.author});
+        });
+    }
+
     createNewRoom(e){
         e.preventDefault();
         //grab the data from the form
         this.setState({visible: false});
-        console.log(this.guestName.value);
         var guestName = this.guestName.value;
-        socket.emit("createNewRoom",guestName);
-        
-        socket.on("newRoomCreated", (data) => {
-            console.log("newRoomCreated");
-            console.log(data);
-            var roomID = data.roomID;
-            this.setState({currentRoom: roomID});
-        });
+        console.log("guestName:", guestName);
+        this.socket.emit("createNewRoom", guestName);
     }
     
     joinRoom(e){
@@ -40,7 +45,7 @@ class Lobby extends Component{
         this.setState({visible: false});
         var guestName = this.guestName.value;
         var room = this.room.value;
-        socket.emit("joinRoomRequest",guestName, room);
+        this.socket.emit("joinRoomRequest",guestName, room);
     }
 
 
@@ -63,6 +68,7 @@ class Lobby extends Component{
             return(
                 <div className="lobby2">
                     <p className="roomID">Current Room: {this.state.currentRoom}</p>
+                    <p className="author">Author: {this.state.author}</p>
                 </div>
             )
         }
