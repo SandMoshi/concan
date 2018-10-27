@@ -8,10 +8,23 @@ var io = require("socket.io")(server);
 
 var bodyParser = require('body-parser');
 
-console.log("Hello world!");
 
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({extended: false}));
+//Global Variables
+/*  Structure
+db ={
+        $roomID :
+            roomID : $roomID,
+            players: {
+                $playerID :{
+                    name: string,
+                    room: string,
+                    socketID: $playerID,
+                    isHost: bool,
+                }
+            }
+    }
+*/
+var db = {}
 
 // Initialize variables
 var drawPile = [];
@@ -25,12 +38,40 @@ var hasDrawn = false;
 var player = "p1";
 var dealer = "p1";
 
+
 const newPlayer = (socket,player) =>{
     io.on('connect', () => {
         io.emit('new-player',{
             playerName: String(socket.id)
         })
     })
+}
+
+function addUserToDb(data){
+    var socketID = data.socketID;
+    var name = data.name;
+    var roomID = data.room;
+    var isHost = data.isHost || false;
+
+    //Create a new player object to represent this user
+    var playerObj = {
+        name: name,
+        room: roomID,
+        socketID: socketID,
+        isHost: isHost
+    }
+
+    //Insert this new player object into the database
+    if(!db[roomID]){
+         db[roomID] = {
+             roomID: roomID,
+             players: {},
+            };
+        db[roomID].players[socketID] = playerObj;
+    }
+    else if(db[roomID].players){
+        db[roomID].players[socketID] = playerObj;
+    }
 }
 
 function generateNewDeck(){
@@ -193,12 +234,6 @@ app.post("/api/discardCard", (req, response) =>{
     response.sendStatus(200);
 })
 
-// app.post("/api/dealCards", (req, response) =>{
-//     console.log(req.body);
-//     io.emit("cardsDealt", req.body);
-//     response.sendStatus(200);
-// })
-
 
 io.on("connection", (socket) => {
 
@@ -213,7 +248,9 @@ io.on("connection", (socket) => {
         console.log("Request to join room ", room, " by ", name);
         var data = {
             name: name,
-            room: room
+            room: room,
+            socketID: socket.id,
+            isHost: false,
         };
         joinRoom(data);
         socket.emit('joinRoomSuccess', room);
@@ -238,26 +275,33 @@ io.on("connection", (socket) => {
     function CreateNewRoom(name) {
         //Get unique room number
         var thisGameId = (Math.random() * 1000000 ) | 0;
-    
+        
         //Send the room number to the browser
-        socket.emit('newRoomCreated', {roomID: thisGameId, mySocketID: socket.id, author: name});
+        addUserToDb({name: name, room: thisGameId, socketID: socket.id, isHost: true});
+        socket.emit('newRoomCreated', {
+            roomID: thisGameId,
+            socketID: socket.id,
+            players: db[thisGameId].players
+
+        });
         //Tell socket.io this user is joining this room
         socket.join(thisGameId.toString());
-        console.log(thisGameId);
     };
 
     function joinRoom(data){
         console.log("trying to join room:" + data.room);
-        data.socketID = socket.id;
         console.log(data);
         socket.join(data.room, () => {
             console.log("successfully joined room ", data.room)
-            // let rooms = Object.keys(socket.rooms);
-            //Let the clients know a player has joined
-            // io.emit("playerJoined");
-            // console.log(rooms);
-            // console.log(data.name + " JOINED room " + data.room);
-            // socket.to(data.room).emit("playerJoined");
+            //Add this user to the database
+            addUserToDb(data);
+            //Let all clients in room know a player has joined
+            io.to(data.room).emit("playerJoined", 
+                {   
+                    roomID: data.room,
+                    socketID: data.socketID,
+                    players: db[data.room].players,
+                });
             // showClients(data.room);
         });
     }

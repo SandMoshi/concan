@@ -23,13 +23,13 @@ class Lobby extends Component{
     componentDidMount(){
         console.log("yay");
         console.log(this.socket);
-        this.socket.on("newRoomCreated", (data) => {
-            console.log("newRoomCreated");
-            console.log(data);
-            var roomID = data.roomID;
-            this.props.saveRoomNumber(roomID);
-            this.setState({currentRoom: roomID, author: data.author});
-        });
+        // this.socket.on("newRoomCreated", (data) => {
+        //     console.log("newRoomCreated");
+        //     console.log(data);
+        //     var roomID = data.roomID;
+        //     this.props.saveRoomNumber(roomID);
+        //     this.setState({currentRoom: roomID, author: data.author});
+        // });
 
         this.socket.on("joinRoomSuccess", (roomID) => {
             this.props.saveRoomNumber(roomID);
@@ -74,8 +74,7 @@ class Lobby extends Component{
         else{
             return(
                 <div className="lobby2">
-                    <p className="roomID">Current Room: {this.state.currentRoom}</p>
-                    <p className="author">Author: {this.state.author}</p>
+                    <p className="roomID">Current Room: {this.props.roomID}</p>
                 </div>
             )
         }

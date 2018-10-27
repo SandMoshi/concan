@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import Card from '../card/card';
+import RoomManifest from '../roommanifest/roommanifest';
 import './game.css';
 
 class Game extends Component {
@@ -235,7 +236,8 @@ class Game extends Component {
     render(){
         return(
             <div className="Game">
-                    <p className="playerName">Connected Player: {this.state.playerName}</p>     
+                    <p className="playerName">Connected Player: {this.props.userName}</p>
+                    <RoomManifest socket={this.socket} players={this.props.players} />     
                     <div className="felt">
                         <div className="deck">
                             {this.state.drawPile}

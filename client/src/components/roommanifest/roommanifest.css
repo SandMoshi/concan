@@ -1,0 +1,41 @@
+
+.manifest{
+    width: 150px;
+    min-height: 100px;
+    border: solid 2px black;
+    overflow: hidden;
+    padding: 0.5rem;
+}
+
+.manifest .title{
+    margin: 0.25rem;
+}
+
+.manifest ul.list{
+    padding: 0px;
+    margin: 0px;
+    margin-top: 0.5rem;
+    text-align: left;
+}
+
+.manifest ul li.user{
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.manifest li div.indicator{
+    width: 10px;
+    height: 10px;
+    background: green;
+    border: 2px solid black;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.host--label{
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
