@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import Card from '../card/card';
+import {Redirect} from 'react-router-dom';
 import RoomManifest from '../roommanifest/roommanifest';
 import './game.css';
 
@@ -13,7 +14,7 @@ class Game extends Component {
         this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
         this.drawCard = this.drawCard.bind(this);
-        this.getDealer = this.getDealer.bind(this);
+        // this.getDealer = this.getDealer.bind(this);
         this.getPlayer = this.getPlayer.bind(this);
         this.playerJoined = this.playerJoined.bind(this);
         this.state = {
@@ -23,6 +24,7 @@ class Game extends Component {
             discardValue: "",
             dealer: null,
             playerName: "",
+            messageToRoom: null,
         };
     }
 
@@ -34,6 +36,7 @@ class Game extends Component {
         this.cardSelected();
         this.socket.on("cardDiscarded", this.updateDiscard);
         this.socket.on("playerJoined", this.playerJoined);
+        this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
     }
 
     playerJoined(){
@@ -85,9 +88,26 @@ class Game extends Component {
         return selected;
     }
 
+    toggleReady = () =>{
+        this.socket.emit("toggleReady", {
+            socketID: this.props.socketID,
+            roomID: this.props.roomID,
+        })
+    }
+
     startNewGame(){
-        this.getDealer();
-        this.getCards();
+        //Make sure everyone is ready
+        var players = this.props.players;
+        for (var player in players){
+            if(players[player].isReady === false){
+                alert("Not All Players Ready!");
+                break;
+            }
+        }
+
+        this.socket.emit("startNewGame",{roomID: this.props.roomID});
+        // this.getDealer();
+        // this.getCards();
     }
 
     pingEveryone = () =>{
@@ -152,22 +172,36 @@ class Game extends Component {
             })
     }
 
-    getDealer(){
-        fetch("http://localhost:3000/api/chooseDealer")
-        .then(response => {
-            // console.log(response);
-            if(!response.ok){
-                alert("There was an error. Code 001.");
-                return;
-            }
-            return response.text();
+    newDealer = (dealerID) => {
+        console.log("new dealer is:" + dealerID);
+        console.log(this);
+        console.log(this.props);
+        var dealerName = this.props.players[dealerID].name;
+        var message = 
+            <div className="messge">
+                <p>{dealerName} is now the dealer.</p>
+            </div>
+
+        this.setState({
+            messageToRoom: message,
         })
-        .then(data => {
-            data = JSON.parse(data);
-            var dealer = <p className="dealer">Player {data.dealerName} is the dealer. You are player {this.state.playerName}.</p>;
-            //update the state to force render
-            this.setState({dealer: dealer});
-        })
+
+        // this.socket.emit("chooseDealer",{roomID: this.props.roomID});
+        // fetch("http://localhost:3000/api/chooseDealer")
+        // .then(response => {
+        //     // console.log(response);
+        //     if(!response.ok){
+        //         alert("There was an error. Code 001.");
+        //         return;
+        //     }
+        //     return response.text();
+        // })
+        // .then(data => {
+        //     data = JSON.parse(data);
+        //     var dealer = <p className="dealer">Player {data.dealerName} is the dealer. You are player {this.state.playerName}.</p>;
+        //     //update the state to force render
+        //     this.setState({dealer: dealer});
+        // })
     }
 
     getCards(){
@@ -234,11 +268,14 @@ class Game extends Component {
     }
 
     render(){
+        if(!this.props.roomID || this.props.match.params.roomID != this.props.roomID) return( <Redirect to={"/"} />)
+
         return(
             <div className="Game">
                     <p className="playerName">Connected Player: {this.props.userName}</p>
-                    <RoomManifest socket={this.socket} players={this.props.players} />     
+                    <RoomManifest socket={this.socket} players={this.props.players} roomID={this.props.roomID}/>     
                     <div className="felt">
+                        {this.state.messageToRoom}
                         <div className="deck">
                             {this.state.drawPile}
                         </div>
@@ -250,18 +287,18 @@ class Game extends Component {
                         {this.state.hand}
                     </div>
                     <div className="playerControls">
+                        <button className="ready" onClick={this.toggleReady}>Ready</button>
+                        <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
+                        <br />
                         <button className="ping" onClick={() => this.pingEveryone()}>Ping Everyone!</button>
+                        <br />
                         <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>
                         <button className="cardRight" onClick={() => this.moveCard("right")}>Move Right</button>
                         <br />
-                        <br />
-                        <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
-                        <br /> <br />
                         <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
-                        <br /> <br />
+                        <br />
                         <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
                         <br />
-                        {this.state.dealer}
                     </div>
             </div>
         );

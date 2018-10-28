@@ -1,6 +1,7 @@
 // A LOBBY THAT ALLOWS YOU TO CREATE A NEW GAME OR JOIN EXISTING GAME
 
 import React, { Component } from 'react';
+import {Redirect} from 'react-router-dom';
 import './lobby.css';
 
 class Lobby extends Component{
@@ -10,10 +11,8 @@ class Lobby extends Component{
         this.createNewRoom = this.createNewRoom.bind(this);
         this.joinRoom = this.joinRoom.bind(this);
         this.state = {
-            currentRoom: "Current Room: _______",
             visible: true,
         }
-
     }
 
     componentWillMount(){
@@ -57,7 +56,8 @@ class Lobby extends Component{
 
 
     render(){
-        if(this.state.visible === true){
+        // if(this.state.visible === true){
+        if(!this.props.roomID){
             return(
                 <div className="lobby">
                     <form className="lobby_form">
@@ -65,17 +65,18 @@ class Lobby extends Component{
                         <br/>
                         <input name="Room" placeholder="Room Number" type="text" ref={room => this.room = room}></input>
                         <br />
-                        <button className="newRoom" onClick={(e) => this.createNewRoom(e)}>Create New Room</button>
-                        <button className="joinRoom" onClick={(e) => this.joinRoom(e)}>Join Room</button>
+                        <button className="newRoom" onClick={(e) => this.createNewRoom(e)}>Create a New Room</button>
+                        <button className="joinRoom" onClick={(e) => this.joinRoom(e)}>Join a Room</button>
                     </form>
                 </div>
             )
         }
         else{
             return(
-                <div className="lobby2">
-                    <p className="roomID">Current Room: {this.props.roomID}</p>
-                </div>
+                <Redirect to={`/rooms/${this.props.roomID}`} />
+                // <div className="lobby2">
+                //     <p className="roomID">Current Room: {this.props.roomID}</p>
+                // </div>
             )
         }
     }

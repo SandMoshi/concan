@@ -2,6 +2,7 @@
 
     this.props.socket
     this.props.users
+    this.props.roomID
 
 */
 
@@ -23,9 +24,10 @@ class RoomManifest extends Component {
     render(){
 
         var roomMembers = Object.keys(this.props.players).map( (uid) =>{
+            var isReady = this.props.players[uid].isReady ? "ready" : "not-ready";
             return(
                 <li className="user" key={`manifest-user-${uid}`}>
-                    <div className="indicator">
+                    <div className={`indicator ${isReady}`} >
                     </div>
                     <span>{this.props.players[uid].name}</span>
                     <span className="host--label">{this.props.players[uid].isHost ? "(Host)" : ""}</span>
@@ -35,6 +37,7 @@ class RoomManifest extends Component {
 
         return(
             <div className="manifest">
+                <p className="roomID">Room: <span>{this.props.roomID}</span></p>
                 <h4 className="title">Players</h4>
                 <ul className="list">
                     {roomMembers}

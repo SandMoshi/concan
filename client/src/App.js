@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter, Switch, Route, NavLink, Redirect }  from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
 
@@ -14,7 +15,7 @@ class App extends Component {
     response: '',
     lobby: true,
     userName: "",
-    roomID: "",
+    roomID: null,
     players: {},
   };
 
@@ -37,8 +38,6 @@ class App extends Component {
       var socketID = data.socketID;   
       this.setState({
         players: data.players,
-        roomID: data.roomID,
-        userName: data.players[socketID].name,
       })
     });
 
@@ -46,20 +45,27 @@ class App extends Component {
       console.log("Ping Received from ", name);
       alert(name + " pinged you!");
     });
+
+    socket.on("userToggled", (players) => {
+      this.setState({
+        players: players,
+      })
+    })
   }
 
-  callApi = async () => {
-    const response = await fetch('/api/hello');
-    const body = await response.json();
-    console.log(response.status);
-    if (response.status !== 200 ) throw Error(body.message);
+  // callApi = async () => {
+  //   const response = await fetch('/api/hello');
+  //   const body = await response.json();
+  //   console.log(response.status);
+  //   if (response.status !== 200 ) throw Error(body.message);
 
-    return body;
-  };
+  //   return body;
+  // };
 
   setName = (name) => {
     this.setState({
       userName: name,
+      socketID: socket.id,
     })
   }
 
@@ -70,6 +76,7 @@ class App extends Component {
   }
 
   render() {
+
     return (
       <div className="App">
         <header className="App-header">
@@ -77,11 +84,15 @@ class App extends Component {
           <h1 className="App-title">Welcome to Concan</h1>
           <p className="App-intro">{this.state.response}</p>
         </header>
-        <Lobby socket={socket} setName={this.setName} userName={this.state.userName} saveRoomNumber={this.saveRoomNumber} roomID={this.state.roomID}/>
-        <Game socket={socket} userName={this.state.userName} roomID={this.state.roomID} players={this.state.players}/>
+        <Switch>
+            <Route exact path="/" render={(props) => 
+              <Lobby {...props} socket={socket} setName={this.setName} userName={this.state.userName} saveRoomNumber={this.saveRoomNumber} roomID={this.state.roomID} />} />
+						<Route exact path="/rooms/:roomID" render={(props) => 
+              <Game {...props} socket={socket} userName={this.state.userName} roomID={this.state.roomID} players={this.state.players} socketID={this.state.socketID}/>}/>
+        </Switch>
       </div>
     );
   }
 }
 
-export default App;
+export default withRouter(App);

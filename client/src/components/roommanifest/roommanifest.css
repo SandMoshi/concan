@@ -35,6 +35,10 @@
     margin-right: 0.5rem;
 }
 
+.manifest li div.indicator.not-ready{
+    background: red;
+}
+
 .host--label{
     font-size: 0.75rem;
     margin-left: 0.5rem;

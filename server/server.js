@@ -20,8 +20,18 @@ db ={
                     room: string,
                     socketID: $playerID,
                     isHost: bool,
+                    isReady: bool,
+                    seat: int,
                 }
+            },
+            numberOfPlayers: int,
+            seats:{
+                1: $playerID,
+                2: $playerID,
+                3: $playerID,
+                4: $playerID,
             }
+            dealer: $seat,
     }
 */
 var db = {}
@@ -58,7 +68,8 @@ function addUserToDb(data){
         name: name,
         room: roomID,
         socketID: socketID,
-        isHost: isHost
+        isHost: isHost,
+        isReady: false,
     }
 
     //Insert this new player object into the database
@@ -72,6 +83,44 @@ function addUserToDb(data){
     else if(db[roomID].players){
         db[roomID].players[socketID] = playerObj;
     }
+
+    //Assign the player a seat
+    if(!db[roomID].seats){
+        db[roomID].seats = {
+            1: null,
+            2: null,
+            3: null,
+            4: null,
+        };
+    }
+    for(var i = 1; i <= 4; i++){
+        if(!db[roomID].seats[i]){
+            db[roomID].seats[i] = socketID;
+            break;
+        }
+    }
+
+    //Increase the player counter
+    if(!db[roomID].numberOfPlayers){
+        db[roomID].numberOfPlayers = 1;
+    }else{
+        db[roomID].numberOfPlayers++
+    }
+}
+
+function chooseDealer(roomID){
+    console.log(db[roomID]);
+    var numberOfPlayers = db[roomID].numberOfPlayers;
+    if(!db[roomID].dealer || db[roomID].dealer >= numberOfPlayers){
+        db[roomID].dealer = 1; //seat 1
+    }else{
+        var newDealerSeat = db[roomID].dealer + 1;
+        db[roomID].dealer = newDealerSeat;
+    }
+    var dealerSeat = db[roomID].dealer;
+    var dealerID = db[roomID].seats[dealerSeat];
+    console.log(dealerID);
+    io.to(roomID).emit('newDealer', dealerID);
 }
 
 function generateNewDeck(){
@@ -159,26 +208,26 @@ app.get("/api/getPlayerName", (req, response) =>{
     
 });
 
-app.get("/api/chooseDealer", (req, response) => {
-    if(dealer === "p1"){
-        //get name of the dealer
-        var dealerName = "1";
-    }
-    if(dealer === "p2"){
-        //get name of the dealer
-        var dealerName = "1";
-    }
-    if(dealer === "p3"){
-        //get name of the dealer
-        var dealerName = "1";
-    }
-    if(dealer === "p4"){
-        //get name of the dealer
-        var dealerName = "1";
-    }
-    response.status(200);
-    response.send({dealer: dealer, dealerName: dealerName});
-});
+// app.get("/api/chooseDealer", (req, response) => {
+//     if(dealer === "p1"){
+//         //get name of the dealer
+//         var dealerName = "1";
+//     }
+//     if(dealer === "p2"){
+//         //get name of the dealer
+//         var dealerName = "1";
+//     }
+//     if(dealer === "p3"){
+//         //get name of the dealer
+//         var dealerName = "1";
+//     }
+//     if(dealer === "p4"){
+//         //get name of the dealer
+//         var dealerName = "1";
+//     }
+//     response.status(200);
+//     response.send({dealer: dealer, dealerName: dealerName});
+// });
 
 function cardCount(player,action){
     console.log("Current Player: " + player);
@@ -237,7 +286,7 @@ app.post("/api/discardCard", (req, response) =>{
 
 io.on("connection", (socket) => {
 
-    console.log("we are connected.");
+    console.log("Client Connected.");
 
     socket.on("createNewRoom", (name) =>{
         CreateNewRoom(name);
@@ -261,6 +310,17 @@ io.on("connection", (socket) => {
         socket.broadcast.to(data.roomID).emit('pingEveryone', data.name);
     })
 
+    socket.on("toggleReady", (req) => {
+        console.log(req.socketID);
+        if(db[req.roomID]){
+            var isReady = db[req.roomID].players[req.socketID].isReady;
+            db[req.roomID].players[req.socketID].isReady = !isReady;
+        }
+        console.log(db[req.roomID].players[req.socketID].name + " is ready:" + db[req.roomID].players[req.socketID].isReady);
+        var players = db[req.roomID].players;
+        io.to(req.roomID).emit('userToggled', players);
+    })
+
     socket.on('new-player', state => {
         console.log("a new user connected with state:", state);
         // players[socket.id] = state;
@@ -270,6 +330,13 @@ io.on("connection", (socket) => {
     socket.on('disconnect', state => {
         // delete players[socket.id];
         // io.emit('update-players', players);
+    })
+
+    socket.on('startNewGame', data => {
+        var roomID = data.roomID;
+
+        //First choose a dealer
+        chooseDealer(roomID);
     })
 
     function CreateNewRoom(name) {
