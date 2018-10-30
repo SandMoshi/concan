@@ -14,7 +14,6 @@ class Game extends Component {
         this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
         this.drawCard = this.drawCard.bind(this);
-        // this.getDealer = this.getDealer.bind(this);
         this.getPlayer = this.getPlayer.bind(this);
         this.playerJoined = this.playerJoined.bind(this);
         this.state = {
@@ -37,10 +36,28 @@ class Game extends Component {
         this.socket.on("cardDiscarded", this.updateDiscard);
         this.socket.on("playerJoined", this.playerJoined);
         this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
+        this.socket.on('yourHand', (data) => this.updateHand(data));
     }
 
     playerJoined(){
         console.log("YAY PLAYER joined!");
+    }
+
+    updateHand = (data) =>{
+        console.log("data:", data);
+        var hand = this.state.hand;
+        data.hand.forEach( (card, index) => {
+            var card = <Card value={card.value} suit={card.suit}  key={`${data.socketID}-${card.value}${card.suit}-${index}`}/>;
+            hand.push(card);
+        })
+
+        //update the pile color
+        var drawPileColor  = data.drawPileColor;
+        var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
+        
+        console.log("hand:", hand);
+        //update state to force render
+        this.setState({hand: hand, drawPile: drawPile});
     }
 
     cardSelected(){
@@ -174,8 +191,6 @@ class Game extends Component {
 
     newDealer = (dealerID) => {
         console.log("new dealer is:" + dealerID);
-        console.log(this);
-        console.log(this.props);
         var dealerName = this.props.players[dealerID].name;
         var message = 
             <div className="messge">
@@ -183,25 +198,9 @@ class Game extends Component {
             </div>
 
         this.setState({
+            dealer: dealerID,
             messageToRoom: message,
         })
-
-        // this.socket.emit("chooseDealer",{roomID: this.props.roomID});
-        // fetch("http://localhost:3000/api/chooseDealer")
-        // .then(response => {
-        //     // console.log(response);
-        //     if(!response.ok){
-        //         alert("There was an error. Code 001.");
-        //         return;
-        //     }
-        //     return response.text();
-        // })
-        // .then(data => {
-        //     data = JSON.parse(data);
-        //     var dealer = <p className="dealer">Player {data.dealerName} is the dealer. You are player {this.state.playerName}.</p>;
-        //     //update the state to force render
-        //     this.setState({dealer: dealer});
-        // })
     }
 
     getCards(){
@@ -273,32 +272,34 @@ class Game extends Component {
         return(
             <div className="Game">
                     <p className="playerName">Connected Player: {this.props.userName}</p>
-                    <RoomManifest socket={this.socket} players={this.props.players} roomID={this.props.roomID}/>     
-                    <div className="felt">
+                    <div className="Menu">
+                        <RoomManifest socket={this.socket} players={this.props.players} roomID={this.props.roomID} dealer={this.state.dealer}/>
                         {this.state.messageToRoom}
+                        <div className="playerControls">
+                            <button className="ready" onClick={this.toggleReady}>Ready</button>
+                            <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
+                            <br />
+                            <button className="ping" onClick={() => this.pingEveryone()}>Ping Everyone!</button>
+                            <br />
+                            <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>
+                            <button className="cardRight" onClick={() => this.moveCard("right")}>Move Right</button>
+                            <br />
+                            <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
+                            <br />
+                            <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
+                            <br />
+                        </div>
+                    </div>
+                    <div className="felt">
                         <div className="deck">
-                            {this.state.drawPile}
+                            {/* {this.state.drawPile} */}
                         </div>
                         <div className="discard">
-                             <Card value={this.state.discardValue} suit={this.state.discardsuit}/>
+                             {/* <Card value={this.state.discardValue} suit={this.state.discardsuit}/> */}
                         </div>
-                    </div>
-                    <div className="playerHand">
-                        {this.state.hand}
-                    </div>
-                    <div className="playerControls">
-                        <button className="ready" onClick={this.toggleReady}>Ready</button>
-                        <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>
-                        <br />
-                        <button className="ping" onClick={() => this.pingEveryone()}>Ping Everyone!</button>
-                        <br />
-                        <button className="cardLeft" onClick={() => this.moveCard("left")}>Move Left</button>
-                        <button className="cardRight" onClick={() => this.moveCard("right")}>Move Right</button>
-                        <br />
-                        <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
-                        <br />
-                        <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
-                        <br />
+                        <div className="playerHand">
+                            {this.state.hand}
+                        </div>
                     </div>
             </div>
         );

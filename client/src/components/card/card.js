@@ -89,6 +89,10 @@ class Card extends Component {
             </div>
             )
         }
+        else{
+            console.log("Nothing was returned from <Card />");
+            return(null)
+        }
     }
 }
 

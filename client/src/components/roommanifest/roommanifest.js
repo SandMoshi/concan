@@ -31,6 +31,10 @@ class RoomManifest extends Component {
                     </div>
                     <span>{this.props.players[uid].name}</span>
                     <span className="host--label">{this.props.players[uid].isHost ? "(Host)" : ""}</span>
+                    {this.props.dealer === uid ? 
+                        <span className="dealer--label">ⅅ</span>
+                        : null
+                    }
                 </li>
             )
         })

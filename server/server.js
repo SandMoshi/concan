@@ -22,6 +22,7 @@ db ={
                     isHost: bool,
                     isReady: bool,
                     seat: int,
+                    hand: [],
                 }
             },
             numberOfPlayers: int,
@@ -32,6 +33,10 @@ db ={
                 4: $playerID,
             }
             dealer: $seat,
+            deck: [],
+            order: [2, 3, 4, 1], (etc)
+            drawPile: [],
+            drawPileColor: string,
     }
 */
 var db = {}
@@ -123,7 +128,7 @@ function chooseDealer(roomID){
     io.to(roomID).emit('newDealer', dealerID);
 }
 
-function generateNewDeck(){
+function generateNewDeck(roomID){
     var newDeck = [];
     var i = 2; //represents facevalue 
     var j = 0; //represents suit
@@ -150,15 +155,20 @@ function generateNewDeck(){
     //Add 2 jokers
     newDeck.push({value: "Jo", suit:"*", back: "red"},{value: "Jo", suit:"*",back: "blue"});
 
-    return newDeck;
+    if(!db[roomID].deck){ db[roomID].deck = null }
+    db[roomID].deck = newDeck;
+    // return newDeck;
 }
 
-function shuffleDeck(newDeck){
-    var deck = newDeck;
+function shuffleDeck(roomID){
+    if(!db[roomID].deck){
+        throw new Error("Deck does not exist. Deck Cannot be shuffled.");
+    }
+    var deck = db[roomID].deck;
     var cardsremaining = deck.length;
     var tempCard;
     var i;
-    
+    console.log("deck:", deck);
     //While there are unshuffled cards
     while(cardsremaining){
         //Choose a unshuffled card at random
@@ -171,37 +181,62 @@ function shuffleDeck(newDeck){
         deck[cardsremaining] = deck[i]; //move card to end
         deck[i] = tempCard; //swap the chosen card with the one at the end
     }
-    
+    //Save to our data structure
+    db[roomID].deck = deck;
     return deck;
 }
 
-function dealCards(shuffledDeck){
-    var hand = shuffledDeck.splice(0,15);
-    drawPile = shuffledDeck;
-    var count = cardCount(null,"newGame");
-    var count = cardCount(dealer,"newGameDealer");
-    // console.log("Count is : " + count.p1);
-    return hand;
+function dealCards(roomID){
+    var deck = generateNewDeck(roomID);
+    var shuffledDeck = shuffleDeck(roomID);
+    console.log("shuffledDeck:", shuffledDeck);
+
+    //Deal to each player
+        //Start with dealer's seat
+        var dealerSeat = db[roomID].dealer;
+        var numberOfPlayers =  db[roomID].numberOfPlayers;
+        var basic_order = [1,2,3,4];
+        if(numberOfPlayers < 4){
+            basic_order = basic_order.splice(0, numberOfPlayers);
+        }
+        var order = basic_order.splice(dealerSeat - 1 , numberOfPlayers - dealerSeat + 1).concat(basic_order);
+        console.log(order);
+        db[roomID].order = order;
+        //will give us ~ order = [2,3,4,1]
+        order.forEach( (seat) => {
+            var playerID = db[roomID].seats[seat];
+            if(dealerSeat == seat){
+                var hand = shuffledDeck.splice(0,15);
+            }
+            else{
+                hand = shuffledDeck.splice(0,14);
+            } 
+            //save
+            db[roomID].players[playerID].hand = hand;
+        })
+    //Remainig cards for the pile
+    var drawPile = shuffledDeck;
+    db[roomID].drawPile = drawPile;
+    var drawPileColor = getDrawPileColor(roomID);
+    db[roomID].drawPileColor = drawPileColor;
+
+    //Emit to each player their hand
+    Object.keys(db[roomID].players).forEach( (socketID) => {
+        io.to(socketID).emit("yourHand", db[roomID].players[socketID]);
+    })
 }
 
-function updateDrawPileColor(){
+function sanitizedData(){
+
+}
+
+function getDrawPileColor(roomID){
     //find color of top card
-    return drawPile[0].back;
+    return db[roomID].drawPile[0].back;
 }
-
-// var newDeck = generateNewDeck();
 
 app.get("/api/hello", (req,response) => {
     response.send("hello");
-});
-
-app.get("/api/dealCards", (req,response) => {
-    //shuffle deck
-    var deck = generateNewDeck();
-    var shuffledDeck = shuffleDeck(deck);
-    var hand = dealCards(shuffledDeck);
-    var drawPileColor = updateDrawPileColor();
-    response.send({hand: hand, drawPileColor: drawPileColor});
 });
 
 app.get("/api/getPlayerName", (req, response) =>{
@@ -229,31 +264,31 @@ app.get("/api/getPlayerName", (req, response) =>{
 //     response.send({dealer: dealer, dealerName: dealerName});
 // });
 
-function cardCount(player,action){
-    console.log("Current Player: " + player);
-    console.log("Current Dealer: " + dealer);
-    if (action === "newGame"){
-        for (var key in count){
-            count[key] = 14;
-        }
-    }
-    if(player){
-        if (action === "newGameDealer"){
-            count[player] = 15;
-        }
-        else if (action === "increase"){
-            count[player] = count[player] + 1;
-        }
-        else if (action === "decrease"){
-            count[player] = count[player] -1;
-        }
-    }
-    // console.log("P1 Card Count is : " + count.p1);
-    // console.log("P2 Card Count is : " + count.p2);
-    // console.log("P3 Card Count is : " + count.p3);
-    // console.log("P4 Card Count is : " + count.p4);
-    return count;
-}
+// function cardCount(player,action){
+//     console.log("Current Player: " + player);
+//     console.log("Current Dealer: " + dealer);
+//     if (action === "newGame"){
+//         for (var key in count){
+//             count[key] = 14;
+//         }
+//     }
+//     if(player){
+//         if (action === "newGameDealer"){
+//             count[player] = 15;
+//         }
+//         else if (action === "increase"){
+//             count[player] = count[player] + 1;
+//         }
+//         else if (action === "decrease"){
+//             count[player] = count[player] -1;
+//         }
+//     }
+//     // console.log("P1 Card Count is : " + count.p1);
+//     // console.log("P2 Card Count is : " + count.p2);
+//     // console.log("P3 Card Count is : " + count.p3);
+//     // console.log("P4 Card Count is : " + count.p4);
+//     return count;
+// }
 
 app.get("/api/drawCard", (req, response) => {
     //get remaining deck
@@ -270,7 +305,7 @@ app.get("/api/drawCard", (req, response) => {
         hasDrawn = true;
         drawPile = drawPile;
         console.log(nextCard);
-        var drawPileColor = updateDrawPileColor();
+        var drawPileColor = getDrawPileColor();
         var nextCard = drawPile.splice(0,1);
         response.send({nextCard: nextCard, drawPileColor: drawPileColor});
     }
@@ -337,6 +372,8 @@ io.on("connection", (socket) => {
 
         //First choose a dealer
         chooseDealer(roomID);
+        //Then deal cards
+        dealCards(roomID);
     })
 
     function CreateNewRoom(name) {
