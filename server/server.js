@@ -126,6 +126,7 @@ function chooseDealer(roomID){
     var dealerID = db[roomID].seats[dealerSeat];
     console.log(dealerID);
     io.to(roomID).emit('newDealer', dealerID);
+    io.to(roomID).emit('updateSeats', db[roomID].seats)
 }
 
 function generateNewDeck(roomID){
@@ -220,14 +221,30 @@ function dealCards(roomID){
     var drawPileColor = getDrawPileColor(roomID);
     db[roomID].drawPileColor = drawPileColor;
 
-    //Emit to each player their hand
+    //Emit to each player their hand and other players hidden hands
     Object.keys(db[roomID].players).forEach( (socketID) => {
-        io.to(socketID).emit("yourHand", db[roomID].players[socketID]);
+        var hand = db[roomID].players[socketID].hand;
+        var sanitizedHand = sanitizeDeck(hand);
+        io.to(socketID).emit("yourHand", hand);
+        io.to(roomID).emit("otherHands", {hand: sanitizedHand, socketID: socketID});
     })
+
+    //Emit public data to room
+    io.to(roomID).emit("drawPileColorUpdate", db[roomID].drawPileColor)
+
+    // io.to(roomID).emit("dbUpdate", {
+    //    drawPileColor: db[roomID].drawPileColor, 
+    // })
+
+
 }
 
-function sanitizedData(){
-
+function sanitizeDeck(deck){
+    var sanitizedDeck = deck.map( (item) => {
+        return item.back;
+    })
+    console.log(sanitizedDeck);
+    return sanitizedDeck;
 }
 
 function getDrawPileColor(roomID){

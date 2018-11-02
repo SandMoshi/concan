@@ -1,6 +1,17 @@
-//GENERATE A NEW PLAYING CARD DOM ELEMENT
-//To use this component you must use a react tag as follows
-// <Card value={"9"} suit={"h"}/>
+/* 
+    GENERATE A NEW PLAYING CARD DOM ELEMEN
+    To use this component you must use a react tag as follows
+    <Card value={"9"} suit={"h"}/>
+
+    Props:
+    this.props.deck : [bool] -display a stack of cards imitating a deck
+    this.props.facedown: [bool] -whether the card should be displayed facedown
+    this.props.color: [string] -"blue" or "red" backing color
+    this.props.drawCard : ?????
+    this.props.style: [style obj] -pass down styles that are set
+
+
+*/
 
 import React, { Component } from 'react';
 import './card.css';
@@ -29,6 +40,7 @@ class Card extends Component {
 
     render(){
         suitProp = this.props.suit;
+        //Do Decks first
         if(this.props.deck === true){ 
             if(this.props.facedown === true && this.props.color === "red"){ return(
                     <div className="container">
@@ -49,11 +61,19 @@ class Card extends Component {
                 )
             }
         }
+        //Single Cards
         else if( suitProp === "" ){ return(
             <div className="card" data-value="" data-suit="" >
             </div>
             )
         }
+        //Single Face Down Cards
+        else if( this.props.facedown === true){
+            return(
+                <div className={`card topcard facedown ${this.props.color}`}  style={this.props.style} onClick={(e) => this.props.drawCard()}></div>
+            )
+        }
+        //Single Face Up Cards
         else if( suitProp === "h"){ return(
             <div className="card" data-value={this.props.value} data-suit={suitProp} onClick={(e) => this.cardSelected(e)}>
               <p className="value">{this.props.value}</p>

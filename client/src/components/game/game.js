@@ -7,7 +7,7 @@ import './game.css';
 class Game extends Component {
 
     constructor(props){
-        super();
+        super(props);
         this.socket = null;
         this.moveCard = this.moveCard.bind(this);
         this.startNewGame = this.startNewGame.bind(this);
@@ -19,11 +19,27 @@ class Game extends Component {
         this.state = {
             hand: [],
             drawPile: null,
+            drawPileColor: null,
             discardsuit: "",
             discardValue: "",
             dealer: null,
             playerName: "",
             messageToRoom: null,
+            hand: null,
+            hands: {},
+            players: this.props.players,
+            seats:{},
+            player2: null,
+            player3: null,
+            player4: null,
+            // $playerID :{
+            //     name: string,
+            //     socketID: $playerID,
+            //     isHost: bool,
+            //     isReady: bool,
+            //     seat: int,
+            //     hand: [],
+            // }
         };
     }
 
@@ -37,27 +53,137 @@ class Game extends Component {
         this.socket.on("playerJoined", this.playerJoined);
         this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
         this.socket.on('yourHand', (data) => this.updateHand(data));
+        this.socket.on('drawPileColorUpdate', (color) => {this.updateDrawPile(color)})
+        this.socket.on('otherHands', (data) => 
+        {console.log('OtherHands!');
+        this.updateOtherHands(data)}
+        );
+        this.socket.on('updateSeats', (seats) => this.updateSeats(seats));
     }
 
     playerJoined(){
         console.log("YAY PLAYER joined!");
     }
 
-    updateHand = (data) =>{
-        console.log("data:", data);
-        var hand = this.state.hand;
-        data.hand.forEach( (card, index) => {
-            var card = <Card value={card.value} suit={card.suit}  key={`${data.socketID}-${card.value}${card.suit}-${index}`}/>;
-            hand.push(card);
+    updateSeats = (seats) => {
+        this.setState({
+            seats: seats
         })
+    }
 
-        //update the pile color
-        var drawPileColor  = data.drawPileColor;
-        var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
+    updateDrawPile = (color) => {
+
+        var drawPile = <Card deck={true} facedown={true} color={color} drawCard={this.drawCard} />;
+
+        console.log("drawPile", drawPile);
+
+        this.setState({
+            drawPile: drawPile
+        })
+    }
+
+    updateOtherHands = (data) => {
+        var hand = data.hand;
+        var socketID = data.socketID;
+
+        //Find their seat and what position they will be displayed as sitting in (Local Player is always shown Position A regardless of Seat #)
+
+        if(!this.state.seats){ throw new Error("No Seats in State")};
+        for(var i = 1; i < 5; i++){
+
+            //Find what your seat is
+            if(this.state.seats[i] === this.props.socketID){
+                var mySeat = i;
+            }
+
+            if(this.state.seats[i] === socketID){
+                var seatNumber = i;
+            }
+        }
+
+        //How many seats are they sitting away from you
+        var seatDifference = seatNumber - mySeat;
+        //Their seat letter (a/b/c/d) is...
+        if(seatDifference > 0){
+            var possiblePositions = ["A","B","C","D"];
+            var theirPosition = possiblePositions[seatDifference]
+        }
+        else if(seatDifference < 0){
+            possiblePositions = ["A","B","C","D"].reverse();
+            theirPosition = possiblePositions[(seatDifference - 1)  *-1]
+        }
+        
+        this.customStyle = (type,index) => {
+            switch(theirPosition){
+                case "B":
+                    if(type === "card"){
+                        return {
+                            top: `${index * 10}px`,
+                            right: `0`,
+                        }
+                    }
+                    else if(type === "label"){
+                        return {
+                            top: `${index * 10 + 80}px`,
+                        }
+                    }
+                case "C":
+                    if(type === "card"){
+                        return {
+                            right: `${index * 10}px`,
+                            top: '10px',
+                        }
+                    }
+                    else if(type === "label"){
+                        return {
+                            right: `${index * 10 + 80}px`,
+                        }
+                    }
+                case "D":
+                    if(type === "card"){
+                        return {
+                            top: `${index * 10}px`,
+                            left: '0',
+                        }
+                    }
+                    else if(type === "label"){
+                        return {
+                            top: `${index * 10 + 80}px`,
+                        }
+                    }
+            }
+        }
+
+        hand = hand.map( (color, index) => {
+            return <Card facedown={true} color={color} key={`${socketID}-${index}`} style={this.customStyle("card", index)}/>; 
+        })
+        //add Counter
+        hand.push(
+            <div key={`label-card-count-${theirPosition}`} className="label--card-count" style={this.customStyle("label", hand.length)}>
+                {hand.length}
+            </div>
+        )
+        var hands = this.state.hands;
+        hands[socketID] = hand;
+
+        var objName = `player${theirPosition}`;
+        this.setState({
+            hands: hands,
+            [objName]: hand,
+        })
+    }
+
+    updateHand = (hand) =>{
+        console.log("data:", hand);
+        var myHand = [];
+        hand.forEach( (card, index) => {
+            var card = <Card value={card.value} suit={card.suit}  key={`myhand-${card.value}${card.suit}-${index}`}/>;
+            myHand.push(card);
+        })
         
         console.log("hand:", hand);
         //update state to force render
-        this.setState({hand: hand, drawPile: drawPile});
+        this.setState({hand: myHand});
     }
 
     cardSelected(){
@@ -292,13 +418,30 @@ class Game extends Component {
                     </div>
                     <div className="felt">
                         <div className="deck">
-                            {/* {this.state.drawPile} */}
+                            {this.state.drawPile}
+                            <p className="area--label">Deck</p>
                         </div>
                         <div className="discard">
                              {/* <Card value={this.state.discardValue} suit={this.state.discardsuit}/> */}
+                            <p className="area--label">Discard Pile</p>
                         </div>
-                        <div className="playerHand">
-                            {this.state.hand}
+                        <div className="player1 player playerHand seat-a">
+                                {this.state.hand}
+                        </div>
+                        <div className="player2 player seat-b">
+                            <div className="hand-container">
+                                {this.state.playerB}
+                            </div>
+                        </div>
+                        <div className="player3 player seat-c">
+                            <div className="hand-container">
+                                {this.state.playerC}
+                            </div>
+                        </div>
+                        <div className="player4 player seat-d">
+                            <div className="hand-container">
+                                {this.state.playerD}
+                            </div>
                         </div>
                     </div>
             </div>
