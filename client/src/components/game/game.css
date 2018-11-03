@@ -25,156 +25,156 @@ div.Game{
     cursor: pointer;
   }
   
-  div.playerHand div:nth-child(1){
+  div.playerHand div.hand-container div:nth-child(1){
     position: absolute;
     transform: translateX(-8rem) translateY(1.2rem) rotate(-40deg);
     z-index: 0;
   }
-  div.playerHand div:nth-child(2){
+  div.playerHand div.hand-container div:nth-child(2){
     position: absolute;
     transform: translateX(-7rem) translateY(0.8rem) rotate(-30deg);
     z-index: 1;
   }
   
-  div.playerHand div:nth-child(3){
+  div.playerHand div.hand-container div:nth-child(3){
     position: absolute;
     transform: translateX(-5.5rem)  translateY(0.4rem) rotate(-20deg);
     z-index: 3;
   }
-  div.playerHand div:nth-child(4){
+  div.playerHand div.hand-container div:nth-child(4){
     position: absolute;
     transform: translateX(-4rem) translateY(0.2rem) rotate(-10deg);
     z-index: 4;
   }
-  div.playerHand div:nth-child(5){
+  div.playerHand div.hand-container div:nth-child(5){
     position: absolute;
     transform: translateX(-2.5rem) translateY(0rem)rotate(-5deg);
     z-index: 5;
   }
-  div.playerHand div:nth-child(6){
+  div.playerHand div.hand-container div:nth-child(6){
     position: absolute;
     transform: translateX(-1rem) translateY(-0.1rem) rotate(0deg);
     z-index: 6;
   }
-  div.playerHand div:nth-child(7){
+  div.playerHand div.hand-container div:nth-child(7){
     position: absolute;
     transform: translateX(0.5rem) translateY(-0.25rem) rotate(2.5deg);
     z-index: 7;
   }
-  div.playerHand div:nth-child(8){
+  div.playerHand div.hand-container div:nth-child(8){
     position: absolute;
     transform: translateX(2rem) translateY(-0.15rem) rotate(5deg);
     z-index: 8;
   }
-  div.playerHand div:nth-child(9){
+  div.playerHand div.hand-container div:nth-child(9){
     position: absolute;
     transform: translateX(3.5rem) translateY(0.1rem) rotate(10deg);
     z-index: 9;
   }
-  div.playerHand div:nth-child(10){
+  div.playerHand div.hand-container div:nth-child(10){
     position: absolute;
     transform: translateX(5rem) translateY(0.4rem) rotate(15deg);
     z-index: 10;
   }
-  div.playerHand div:nth-child(11){
+  div.playerHand div.hand-container div:nth-child(11){
     position: absolute;
     transform: translateX(6.5rem) translateY(0.8rem) rotate(20deg);
     z-index: 11;
   }
-  div.playerHand div:nth-child(12){
+  div.playerHand div.hand-container div:nth-child(12){
     position: absolute;
     transform: translateX(7.8rem) translateY(1.3rem) rotate(25deg);
     z-index: 12;
   }
-  div.playerHand div:nth-child(13){
+  div.playerHand div.hand-container div:nth-child(13){
     position: absolute;
     transform: translateX(9rem) translateY(2rem) rotate(30deg);
     z-index: 13;
   }
-  div.playerHand div:nth-child(14){
+  div.playerHand div.hand-container div:nth-child(14){
     position: absolute;
     transform: translateX(10rem) translateY(2.5rem) rotate(35deg);
     z-index: 14;
   }
-  div.playerHand div:nth-child(15){
+  div.playerHand div.hand-container div:nth-child(15){
     position: absolute;
     transform: translateX(11.1rem) translateY(3.2rem) rotate(37deg);
     z-index: 15;
   }
    
   /* Hover Effect on Cards */
-  div.playerHand div:nth-child(1):hover, div.playerHand div:nth-child(1).selected{
+  div.playerHand div.hand-container div:nth-child(1):hover, div.playerHand div:nth-child(1).selected{
     position: absolute;
     transform: translateX(-9rem) translateY(0.2rem) rotate(-40deg);
     z-index: 0;
   }
-  div.playerHand div:nth-child(2):hover, div.playerHand div:nth-child(2).selected{
+  div.playerHand div.hand-container div:nth-child(2):hover, div.playerHand div:nth-child(2).selected{
     position: absolute;
     transform: translateX(-7.5rem) translateY(-0.2rem) rotate(-30deg);
     z-index: 1;
   }
   
-  div.playerHand div:nth-child(3):hover, div.playerHand div:nth-child(3).selected{
+  div.playerHand div.hand-container div:nth-child(3):hover, div.playerHand div:nth-child(3).selected{
     position: absolute;
     transform: translateX(-6.0rem)  translateY(-0.6rem) rotate(-20deg);
     z-index: 3;
   }
-  div.playerHand div:nth-child(4):hover,  div.playerHand div:nth-child(4).selected{
+  div.playerHand div.hand-container div:nth-child(4):hover,  div.playerHand div.hand-container div:nth-child(4).selected{
     position: absolute;
     transform: translateX(-4rem) translateY(-0.8rem) rotate(-10deg);
     z-index: 4;
   }
-  div.playerHand div:nth-child(5):hover, div.playerHand div:nth-child(5).selected{
+  div.playerHand div.hand-container div:nth-child(5):hover, div.playerHand div:nth-child(5).selected{
     position: absolute;
     transform: translateX(-2.5rem) translateY(-1rem)rotate(-5deg);
     z-index: 5;
   }
-  div.playerHand div:nth-child(6):hover, div.playerHand div:nth-child(6).selected{
+  div.playerHand div.hand-container div:nth-child(6):hover, div.playerHand div:nth-child(6).selected{
     position: absolute;
     transform: translateX(-1rem) translateY(-1.1rem) rotate(0deg);
     z-index: 6;
   }
-  div.playerHand div:nth-child(7):hover, div.playerHand div:nth-child(7).selected{
+  div.playerHand div.hand-container div:nth-child(7):hover, div.playerHand div:nth-child(7).selected{
     position: absolute;
     transform: translateX(0.5rem) translateY(-1.25rem) rotate(2.5deg);
     z-index: 7;
   }
-  div.playerHand div:nth-child(8):hover, div.playerHand div:nth-child(8).selected{
+  div.playerHand div.hand-container div:nth-child(8):hover, div.playerHand div:nth-child(8).selected{
     position: absolute;
     transform: translateX(2rem) translateY(-1.15rem) rotate(5deg);
     z-index: 8;
   }
-  div.playerHand div:nth-child(9):hover, div.playerHand div:nth-child(9).selected{
+  div.playerHand div.hand-container div:nth-child(9):hover, div.playerHand div:nth-child(9).selected{
     position: absolute;
     transform: translateX(3.5rem) translateY(-0.9rem) rotate(10deg);
     z-index: 9;
   }
-  div.playerHand div:nth-child(10):hover, div.playerHand div:nth-child(10).selected{
+  div.playerHand div.hand-container div:nth-child(10):hover, div.playerHand div:nth-child(10).selected{
     position: absolute;
     transform: translateX(5rem) translateY(-0.6rem) rotate(15deg);
     z-index: 10;
   }
-  div.playerHand div:nth-child(11):hover, div.playerHand div:nth-child(11).selected{
+  div.playerHand div.hand-container div:nth-child(11):hover, div.playerHand div:nth-child(11).selected{
     position: absolute;
     transform: translateX(6.5rem) translateY(-0.2rem) rotate(20deg);
     z-index: 11;
   }
-  div.playerHand div:nth-child(12):hover,  div.playerHand div:nth-child(12).selected{
+  div.playerHand div.hand-container div:nth-child(12):hover,  div.playerHand div.hand-container div:nth-child(12).selected{
     position: absolute;
     transform: translateX(8rem) translateY(0.3rem) rotate(25deg);
     z-index: 12;
   }
-  div.playerHand div:nth-child(13):hover,  div.playerHand div:nth-child(13).selected{
+  div.playerHand div.hand-container div:nth-child(13):hover,  div.playerHand div.hand-container div:nth-child(13).selected{
     position: absolute;
     transform: translateX(9.2rem) translateY(1rem) rotate(30deg);
     z-index: 13;
   }
-  div.playerHand div:nth-child(14):hover,  div.playerHand div:nth-child(14).selected{
+  div.playerHand div.hand-container div:nth-child(14):hover,  div.playerHand div.hand-container div:nth-child(14).selected{
     position: absolute;
     transform: translateX(10.5rem) translateY(1.5rem) rotate(35deg);
     z-index: 14;
   }
-  div.playerHand div:nth-child(15):hover, div.playerHand div:nth-child(15).selected{
+  div.playerHand div.hand-container div:nth-child(15):hover, div.playerHand div:nth-child(15).selected{
     position: absolute;
     transform: translateX(11.6rem) translateY(2.2rem) rotate(37deg);
     z-index: 15;
@@ -185,15 +185,17 @@ div.hand-container{
   position: relative;
 }
 
+div.seat{
+  position: relative;
+}
 
-div.seat-b {
-  position: relative;
-}
-div.seat-c {
-  position: relative;
-}
-div.seat-d {
-  position: relative;
+div.seat-a .hand-container{
+  position: absolute;
+  bottom: 10px;
+  left: 40%;
+  /* transform: translateX(-50%); */
+  /* width: 400px; */
+  height: 180px;
 }
 
 div.seat-b .hand-container{
@@ -303,8 +305,8 @@ div.felt{
   background-color: #007047;
   background-image: url("../../assets/felt.png");
   display: grid;
-  grid-template-columns: repeat(8, 12.5%);
-  grid-template-rows: repeat(8, 12.5%);
+  grid-template-columns: repeat(8, 125px);
+  grid-template-rows: repeat(8,100px);
   grid-gap: 5.75px;
   grid-auto-flow: row;
 }
@@ -315,19 +317,19 @@ div.player{
   min-height: 200px;
 }
 
-div.player1{
+div.seat-a{
   grid-column: 3 / span 4;
-  grid-row: 7 / span 2;
+  grid-row: 6 / span 3;
 }
-div.player2{
+div.seat-b{
   grid-column: 7 / span 2;
   grid-row: 2 / span 6;
 }
-div.player3{
+div.seat-c{
   grid-column: 3 / span 4;
-  grid-row: 1 / span 2;
+  grid-row: 1 / span 3;
 }
-div.player4{
+div.seat-d{
   grid-column: 1 / span 2;
   grid-row: 2 / span 6;
 }
@@ -338,7 +340,7 @@ div.deck{
   width: 110px;
   margin-right: 40px; */
   grid-column: 5 / span 2;
-  grid-row: 3 / span 2;
+  grid-row: 4 / span 2;
   background: rgba(255, 192, 203, 0.425);
   min-height: 200px;
 
@@ -347,7 +349,7 @@ div.deck{
 div.discard{
   /* margin-top: 9px; */
   grid-column: 3 / span 2;
-  grid-row: 3 / span 2;
+  grid-row: 4 / span 2;
   background: rgba(128, 0, 0, 0.39);
   min-height: 200px;
 }

@@ -9,7 +9,7 @@
     this.props.color: [string] -"blue" or "red" backing color
     this.props.drawCard : ?????
     this.props.style: [style obj] -pass down styles that are set
-
+    this.props.empty: [bool] -if card should show that deck is empty
 
 */
 
@@ -62,6 +62,13 @@ class Card extends Component {
             }
         }
         //Single Cards
+        else if(this.props.empty === true){
+            return(
+                <div className="card empty">
+                    <p>EMPTY</p>
+                </div>
+              )
+        }
         else if( suitProp === "" ){ return(
             <div className="card" data-value="" data-suit="" >
             </div>

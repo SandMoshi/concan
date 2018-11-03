@@ -7,7 +7,7 @@ import Lobby from './components/lobby/lobby';
 import Game from './components/game/game';
 
 const io = require('socket.io-client');
-const socket = io.connect('http://localhost:3000');
+const socket = io.connect('http://localhost:3000', { forceNew: true });
 
 class App extends Component {
 

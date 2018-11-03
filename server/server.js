@@ -114,7 +114,7 @@ function addUserToDb(data){
 }
 
 function chooseDealer(roomID){
-    console.log(db[roomID]);
+    // console.log(db[roomID]);
     var numberOfPlayers = db[roomID].numberOfPlayers;
     if(!db[roomID].dealer || db[roomID].dealer >= numberOfPlayers){
         db[roomID].dealer = 1; //seat 1
@@ -124,7 +124,7 @@ function chooseDealer(roomID){
     }
     var dealerSeat = db[roomID].dealer;
     var dealerID = db[roomID].seats[dealerSeat];
-    console.log(dealerID);
+    // console.log(dealerID);
     io.to(roomID).emit('newDealer', dealerID);
     io.to(roomID).emit('updateSeats', db[roomID].seats)
 }
@@ -169,7 +169,7 @@ function shuffleDeck(roomID){
     var cardsremaining = deck.length;
     var tempCard;
     var i;
-    console.log("deck:", deck);
+    // console.log("deck:", deck);
     //While there are unshuffled cards
     while(cardsremaining){
         //Choose a unshuffled card at random
@@ -185,71 +185,6 @@ function shuffleDeck(roomID){
     //Save to our data structure
     db[roomID].deck = deck;
     return deck;
-}
-
-function dealCards(roomID){
-    var deck = generateNewDeck(roomID);
-    var shuffledDeck = shuffleDeck(roomID);
-    console.log("shuffledDeck:", shuffledDeck);
-
-    //Deal to each player
-        //Start with dealer's seat
-        var dealerSeat = db[roomID].dealer;
-        var numberOfPlayers =  db[roomID].numberOfPlayers;
-        var basic_order = [1,2,3,4];
-        if(numberOfPlayers < 4){
-            basic_order = basic_order.splice(0, numberOfPlayers);
-        }
-        var order = basic_order.splice(dealerSeat - 1 , numberOfPlayers - dealerSeat + 1).concat(basic_order);
-        console.log(order);
-        db[roomID].order = order;
-        //will give us ~ order = [2,3,4,1]
-        order.forEach( (seat) => {
-            var playerID = db[roomID].seats[seat];
-            if(dealerSeat == seat){
-                var hand = shuffledDeck.splice(0,15);
-            }
-            else{
-                hand = shuffledDeck.splice(0,14);
-            } 
-            //save
-            db[roomID].players[playerID].hand = hand;
-        })
-    //Remainig cards for the pile
-    var drawPile = shuffledDeck;
-    db[roomID].drawPile = drawPile;
-    var drawPileColor = getDrawPileColor(roomID);
-    db[roomID].drawPileColor = drawPileColor;
-
-    //Emit to each player their hand and other players hidden hands
-    Object.keys(db[roomID].players).forEach( (socketID) => {
-        var hand = db[roomID].players[socketID].hand;
-        var sanitizedHand = sanitizeDeck(hand);
-        io.to(socketID).emit("yourHand", hand);
-        io.to(roomID).emit("otherHands", {hand: sanitizedHand, socketID: socketID});
-    })
-
-    //Emit public data to room
-    io.to(roomID).emit("drawPileColorUpdate", db[roomID].drawPileColor)
-
-    // io.to(roomID).emit("dbUpdate", {
-    //    drawPileColor: db[roomID].drawPileColor, 
-    // })
-
-
-}
-
-function sanitizeDeck(deck){
-    var sanitizedDeck = deck.map( (item) => {
-        return item.back;
-    })
-    console.log(sanitizedDeck);
-    return sanitizedDeck;
-}
-
-function getDrawPileColor(roomID){
-    //find color of top card
-    return db[roomID].drawPile[0].back;
 }
 
 app.get("/api/hello", (req,response) => {
@@ -336,9 +271,9 @@ app.post("/api/discardCard", (req, response) =>{
 })
 
 
-io.on("connection", (socket) => {
+io.on("connect", (socket) => {
 
-    console.log("Client Connected.");
+    console.log("Client Connected.", socket.id);
 
     socket.on("createNewRoom", (name) =>{
         CreateNewRoom(name);
@@ -432,6 +367,71 @@ io.on("connection", (socket) => {
             if (err) throw err;
             console.log("The people in room ", room, " are: ", data);
         })
+    }
+
+    function dealCards(roomID){
+        var deck = generateNewDeck(roomID);
+        var shuffledDeck = shuffleDeck(roomID);
+        // console.log("shuffledDeck:", shuffledDeck);
+    
+        //Deal to each player
+            //Start with dealer's seat
+            var dealerSeat = db[roomID].dealer;
+            var numberOfPlayers =  db[roomID].numberOfPlayers;
+            var basic_order = [1,2,3,4];
+            if(numberOfPlayers < 4){
+                basic_order = basic_order.splice(0, numberOfPlayers);
+            }
+            var order = basic_order.splice(dealerSeat - 1 , numberOfPlayers - dealerSeat + 1).concat(basic_order);
+            console.log(order);
+            db[roomID].order = order;
+            //will give us ~ order = [2,3,4,1]
+            order.forEach( (seat) => {
+                var playerID = db[roomID].seats[seat];
+                if(dealerSeat == seat){
+                    var hand = shuffledDeck.splice(0,15);
+                }
+                else{
+                    hand = shuffledDeck.splice(0,14);
+                } 
+                var sanitizedHand = sanitizeDeck(hand);
+                //save
+                db[roomID].players[playerID].hand = hand;
+                db[roomID].players[playerID].sanitizedHand = sanitizedHand;
+            })
+        //Remainig cards for the pile
+        var drawPile = shuffledDeck;
+        db[roomID].drawPile = drawPile;
+        var drawPileColor = getDrawPileColor(roomID);
+        db[roomID].drawPileColor = drawPileColor;
+    
+        //Emit to each player their hand and other players hidden hands
+        Object.keys(db[roomID].players).forEach( (socketID) => {
+            var hand = db[roomID].players[socketID].hand;
+            var sanitizedHand = db[roomID].players[socketID].sanitizedHand;
+            io.to(socketID).emit("yourHand", hand);
+            io.to(roomID).emit("otherHand", {hand: sanitizedHand, socketID: socketID});
+        })
+    
+        //Emit public data to room
+        io.to(roomID).emit("drawPileColorUpdate", db[roomID].drawPileColor)
+    
+        // io.to(roomID).emit("dbUpdate", {
+        //    drawPileColor: db[roomID].drawPileColor, 
+        // })
+    }
+    
+    function sanitizeDeck(deck){
+        var sanitizedDeck = deck.map( (item) => {
+            return item.back;
+        })
+        // console.log(sanitizedDeck);
+        return sanitizedDeck;
+    }
+    
+    function getDrawPileColor(roomID){
+        //find color of top card
+        return db[roomID].drawPile[0].back;
     }
 })
 

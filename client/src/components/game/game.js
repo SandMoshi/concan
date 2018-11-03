@@ -20,6 +20,7 @@ class Game extends Component {
             hand: [],
             drawPile: null,
             drawPileColor: null,
+            discardPile: <Card  empty={true} />,
             discardsuit: "",
             discardValue: "",
             dealer: null,
@@ -48,15 +49,15 @@ class Game extends Component {
     }
 
     componentDidMount(){
-        this.cardSelected();
+        // this.cardSelected();
         this.socket.on("cardDiscarded", this.updateDiscard);
-        this.socket.on("playerJoined", this.playerJoined);
+        // this.socket.on("playerJoined", this.playerJoined);
         this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
         this.socket.on('yourHand', (data) => this.updateHand(data));
         this.socket.on('drawPileColorUpdate', (color) => {this.updateDrawPile(color)})
-        this.socket.on('otherHands', (data) => 
-        {console.log('OtherHands!');
-        this.updateOtherHands(data)}
+        this.socket.on('otherHand', (data) => 
+        {console.log('OtherHand Received!', data);
+        this.updateOtherHand(data)}
         );
         this.socket.on('updateSeats', (seats) => this.updateSeats(seats));
     }
@@ -82,75 +83,80 @@ class Game extends Component {
         })
     }
 
-    updateOtherHands = (data) => {
+    updateOtherHand = (data) => {
         var hand = data.hand;
         var socketID = data.socketID;
-
+        var mySeat = null;
+        var seatNumber = null;
         //Find their seat and what position they will be displayed as sitting in (Local Player is always shown Position A regardless of Seat #)
 
         if(!this.state.seats){ throw new Error("No Seats in State")};
-        for(var i = 1; i < 5; i++){
 
+        for(var i = 1; i < 5; i++){
             //Find what your seat is
             if(this.state.seats[i] === this.props.socketID){
-                var mySeat = i;
+                mySeat = i;
             }
 
             if(this.state.seats[i] === socketID){
-                var seatNumber = i;
+                seatNumber = i;
             }
         }
 
         //How many seats are they sitting away from you
         var seatDifference = seatNumber - mySeat;
         //Their seat letter (a/b/c/d) is...
-        if(seatDifference > 0){
+        if(seatDifference === 0){
+            //Then that is me, so ignore it
+            return;
+        }
+        else if(seatDifference > 0){
             var possiblePositions = ["A","B","C","D"];
             var theirPosition = possiblePositions[seatDifference]
         }
         else if(seatDifference < 0){
-            possiblePositions = ["A","B","C","D"].reverse();
-            theirPosition = possiblePositions[(seatDifference - 1)  *-1]
+            var possiblePositions = ["A","B","C","D"].reverse();
+            var theirPosition = possiblePositions[(seatDifference * -1) - 1]
         }
         
         this.customStyle = (type,index) => {
-            switch(theirPosition){
-                case "B":
-                    if(type === "card"){
-                        return {
-                            top: `${index * 10}px`,
-                            right: `0`,
-                        }
+        switch(theirPosition){
+            case "B":
+                if(type === "card"){
+                    return {
+                        top: `${index * 10}px`,
+                        right: `0`,
                     }
-                    else if(type === "label"){
-                        return {
-                            top: `${index * 10 + 80}px`,
-                        }
+                }
+                else if(type === "label"){
+                    return {
+                        top: `${index * 10 + 80}px`,
                     }
-                case "C":
-                    if(type === "card"){
-                        return {
-                            right: `${index * 10}px`,
-                            top: '10px',
-                        }
+                }
+            case "C":
+                if(type === "card"){
+                    return {
+                        right: `${index * 10}px`,
+                        top: '10px',
                     }
-                    else if(type === "label"){
-                        return {
-                            right: `${index * 10 + 80}px`,
-                        }
+                }
+                else if(type === "label"){
+                    return {
+                        right: `${index * 10 + 80}px`,
                     }
-                case "D":
-                    if(type === "card"){
-                        return {
-                            top: `${index * 10}px`,
-                            left: '0',
-                        }
+                }
+            case "D":
+                if(type === "card"){
+                    return {
+                        top: `${index * 10}px`,
+                        left: '0',
                     }
-                    else if(type === "label"){
-                        return {
-                            top: `${index * 10 + 80}px`,
-                        }
+                }
+                else if(type === "label"){
+                    return {
+                        top: `${index * 10 + 80}px`,
                     }
+                }
             }
         }
 
@@ -163,12 +169,15 @@ class Game extends Component {
                 {hand.length}
             </div>
         )
-        var hands = this.state.hands;
-        hands[socketID] = hand;
+
+        console.log("Their Position:", theirPosition, "seat #:", seatNumber);
 
         var objName = `player${theirPosition}`;
         this.setState({
-            hands: hands,
+            hands: {
+                ...this.state.hands,
+                [socketID]: hand
+            },
             [objName]: hand,
         })
     }
@@ -186,15 +195,15 @@ class Game extends Component {
         this.setState({hand: myHand});
     }
 
-    cardSelected(){
-        //toggle if a card is selected
-        var cards = document.getElementsByClassName("card");
-        [].forEach.call(cards, (card)=>{
-            card.addEventListener('click',()=>{
-                card.classList.toggle("selected");
-            })
-        })
-    }
+    // cardSelected(){
+    //     //toggle if a card is selected
+    //     var cards = document.getElementsByClassName("card");
+    //     [].forEach.call(cards, (card)=>{
+    //         card.addEventListener('click',()=>{
+    //             card.classList.toggle("selected");
+    //         })
+    //     })
+    // }
 
     moveCard(direction){
         //moves cards in either direction in player's hand
@@ -418,27 +427,29 @@ class Game extends Component {
                     </div>
                     <div className="felt">
                         <div className="deck">
-                            {this.state.drawPile}
                             <p className="area--label">Deck</p>
+                            {this.state.drawPile}
                         </div>
                         <div className="discard">
-                             {/* <Card value={this.state.discardValue} suit={this.state.discardsuit}/> */}
                             <p className="area--label">Discard Pile</p>
+                            {this.state.discardPile}
                         </div>
-                        <div className="player1 player playerHand seat-a">
-                                {this.state.hand}
+                        <div className="player playerHand seat-a seat">
+                                <div className="hand-container">
+                                    {this.state.hand}
+                                </div>
                         </div>
-                        <div className="player2 player seat-b">
+                        <div className="player seat-b seat">
                             <div className="hand-container">
                                 {this.state.playerB}
                             </div>
                         </div>
-                        <div className="player3 player seat-c">
+                        <div className="player seat-c seat">
                             <div className="hand-container">
                                 {this.state.playerC}
                             </div>
                         </div>
-                        <div className="player4 player seat-d">
+                        <div className="player seat-d seat">
                             <div className="hand-container">
                                 {this.state.playerD}
                             </div>
