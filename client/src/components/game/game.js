@@ -33,6 +33,8 @@ class Game extends Component {
             player2: null,
             player3: null,
             player4: null,
+            prevPlayer: null,
+            nextPlayer: null,
             // $playerID :{
             //     name: string,
             //     socketID: $playerID,
@@ -60,6 +62,7 @@ class Game extends Component {
         this.updateOtherHand(data)}
         );
         this.socket.on('updateSeats', (seats) => this.updateSeats(seats));
+        this.socket.on('newTurn', (data) => this.turnChange(data));
     }
 
     playerJoined(){
@@ -67,8 +70,51 @@ class Game extends Component {
     }
 
     updateSeats = (seats) => {
+
+        var socketID = null;
+        var mySeat = null;
+        var seatNumber = null;
+        var updatedSeats = {};
+        var seatsByID = {};
+        //Find their seat and what position they will be displayed as sitting in (Local Player is always shown Position A regardless of Seat #)
+
+        for(var i = 1; i < 5; i++){
+            //Find what your seat is
+            if(seats[i] === this.props.socketID){
+                mySeat = i;
+            }
+            seatNumber = i;
+
+            //How many seats are they sitting away from you
+            var seatDifference = seatNumber - mySeat;
+            //Their seat letter (a/b/c/d) is...
+            if(seatDifference === 0){
+                //Then that is me, so ignore it
+                var theirPosition = "A";
+            }
+            else if(seatDifference > 0){
+                var possiblePositions = ["A","B","C","D"];
+                var theirPosition = possiblePositions[seatDifference]
+            }
+            else if(seatDifference < 0){
+                var possiblePositions = ["A","B","C","D"].reverse();
+                var theirPosition = possiblePositions[(seatDifference * -1) - 1]
+            }
+            updatedSeats[i] = {
+                socketID : seats[i],
+                position: theirPosition,
+            }
+
+            seatsByID[seats[i]] = {
+                seats: i,
+                position: theirPosition,
+            } 
+        }
+
+
         this.setState({
-            seats: seats
+            seats: updatedSeats,
+            seatsByID: seatsByID,
         })
     }
 
@@ -90,35 +136,10 @@ class Game extends Component {
         var seatNumber = null;
         //Find their seat and what position they will be displayed as sitting in (Local Player is always shown Position A regardless of Seat #)
 
-        if(!this.state.seats){ throw new Error("No Seats in State")};
+        if(!this.state.seats || !this.state.seatsByID){ throw new Error("No Seats in State")};
 
-        for(var i = 1; i < 5; i++){
-            //Find what your seat is
-            if(this.state.seats[i] === this.props.socketID){
-                mySeat = i;
-            }
+        var theirPosition = this.state.seatsByID[socketID].position;
 
-            if(this.state.seats[i] === socketID){
-                seatNumber = i;
-            }
-        }
-
-        //How many seats are they sitting away from you
-        var seatDifference = seatNumber - mySeat;
-        //Their seat letter (a/b/c/d) is...
-        if(seatDifference === 0){
-            //Then that is me, so ignore it
-            return;
-        }
-        else if(seatDifference > 0){
-            var possiblePositions = ["A","B","C","D"];
-            var theirPosition = possiblePositions[seatDifference]
-        }
-        else if(seatDifference < 0){
-            var possiblePositions = ["A","B","C","D"].reverse();
-            var theirPosition = possiblePositions[(seatDifference * -1) - 1]
-        }
-        
         this.customStyle = (type,index) => {
         switch(theirPosition){
             case "B":
@@ -186,13 +207,25 @@ class Game extends Component {
         console.log("data:", hand);
         var myHand = [];
         hand.forEach( (card, index) => {
-            var card = <Card value={card.value} suit={card.suit}  key={`myhand-${card.value}${card.suit}-${index}`}/>;
+            var card = <Card value={card.value} suit={card.suit} back={card.back}  key={`myhand-${card.value}${card.suit}-${index}`}/>;
             myHand.push(card);
         })
         
         console.log("hand:", hand);
         //update state to force render
         this.setState({hand: myHand});
+    }
+
+    turnChange = (data) => {
+        var prevPlayer = data.prevPlayer;
+        var nextPlayer = data.nextPlayer;
+
+        this.setState({
+            prevPlayer: prevPlayer,
+            nextPlayer: nextPlayer,
+            messageToRoom: [...this.state.messageToRoom,<p>Player {prevPlayer}'s turn has ended.</p>,<p>Player {nextPlayer}'s turn has begun.</p>],
+        })
+
     }
 
     // cardSelected(){
@@ -276,23 +309,23 @@ class Game extends Component {
             alert("You must discard exactly one card.");
             return;
         }
+        this.socket.emit('confirmCardDrawn', this.props.socketID);
+
         //TODO make sure a card has been drawn first before discarding !!!!!!!!!!!!!!!!!!!!!!!!!
         console.log(selected[0]);
         var faceValue = selected[0].dataset.value;
         var suitValue = selected[0].dataset.suit;
+        var backValue = selected[0].dataset.back;
+
         //move from hand to discard pile
-        fetch("http://localhost:3000/api/discardCard", {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                value: faceValue, 
-                suit: suitValue,
-                player: "1",
-            }),
+        this.socket.emit('discardCard', {
+            value: faceValue,
+            suit: suitValue,
+            back: backValue,
+            socketID: this.props.socketID,
+            roomID: this.props.roomID,
         })
+        //TODO: Wait for server to confirm
         //remove card from the DOM
         selected[0].remove();
     }
@@ -328,13 +361,11 @@ class Game extends Component {
         console.log("new dealer is:" + dealerID);
         var dealerName = this.props.players[dealerID].name;
         var message = 
-            <div className="messge">
                 <p>{dealerName} is now the dealer.</p>
-            </div>
 
         this.setState({
             dealer: dealerID,
-            messageToRoom: message,
+            messageToRoom: [message],
         })
     }
 
@@ -407,9 +438,13 @@ class Game extends Component {
         return(
             <div className="Game">
                     <p className="playerName">Connected Player: {this.props.userName}</p>
+                    {this.state.prevPlayer}
+                    {this.state.nextPlayer}
                     <div className="Menu">
                         <RoomManifest socket={this.socket} players={this.props.players} roomID={this.props.roomID} dealer={this.state.dealer}/>
-                        {this.state.messageToRoom}
+                        <div className="MessageBox">
+                            {this.state.messageToRoom}
+                        </div>
                         <div className="playerControls">
                             <button className="ready" onClick={this.toggleReady}>Ready</button>
                             <button className="newgame" onClick={() => this.startNewGame()}>Start New Game</button>

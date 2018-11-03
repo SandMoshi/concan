@@ -368,3 +368,11 @@ div.playerHand{
   bottom: 0;
   min-height: 210px; */
 }
+
+/* ~~~~~~~~~~~~ MessageBox ~~~~~~~~~~~~~~~~~ */
+div.MessageBox{
+  border: solid 2px black;
+  max-height: 150px;
+  overflow: auto;
+  width: 300px;
+}

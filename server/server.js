@@ -32,11 +32,18 @@ db ={
                 3: $playerID,
                 4: $playerID,
             }
-            dealer: $seat,
+            dealer: int (seatNumber),
             deck: [],
             order: [2, 3, 4, 1], (etc)
             drawPile: [],
             drawPileColor: string,
+            discardPile: [],
+            discardPileLength: int,
+            currentTurn: int,
+            thisTurn:{
+                hasDrawn: false,
+                hasDiscarded: false,
+            }
     }
 */
 var db = {}
@@ -101,6 +108,7 @@ function addUserToDb(data){
     for(var i = 1; i <= 4; i++){
         if(!db[roomID].seats[i]){
             db[roomID].seats[i] = socketID;
+            db[roomID].players[socketID].seat = i;
             break;
         }
     }
@@ -263,18 +271,11 @@ app.get("/api/drawCard", (req, response) => {
     }
 })
 
-app.post("/api/discardCard", (req, response) =>{
-    console.log(req.body);
-    count = cardCount(player,"decrease");
-    io.emit('cardDiscarded', req.body);
-    response.sendStatus(200);
-})
-
 
 io.on("connect", (socket) => {
 
     console.log("Client Connected.", socket.id);
-
+    //~~~~~~~~~~~~~~ SOCKET LISTENERS ~~~~~~~~~~~~~~~~~~
     socket.on("createNewRoom", (name) =>{
         CreateNewRoom(name);
         console.log("NEW ROOM CREATED!");
@@ -326,7 +327,54 @@ io.on("connect", (socket) => {
         chooseDealer(roomID);
         //Then deal cards
         dealCards(roomID);
+        determineTurn(roomID);
     })
+
+    socket.on('discardCard', data =>{
+        var card = {
+            value: data.value,
+            suit: data.suit,
+            back: data.back,
+        }
+        var socketID = data.socketID;
+        var roomID = data.roomID;
+        var seats = db[roomID].seats;
+        //Make sure it's this users turn
+        if(!seats[db[roomID].currentTurn] === socketID){
+            console.log("NOT THE USER WHO IS REQUESTING the DISCARD's TURN!");
+            return;
+        }
+        //Make sure they have drawn already
+        if(!db[roomID].thisTurn.hasDrawn){
+            console.log("USER MUST DRAW FIRST!")
+            return;
+        }
+        //Make sure they have not yet discarded
+        if(db[roomID].thisTurn.hasDiscarded){
+            console.log("USER HAS ALREADY DISCARDED THIS TURN!")
+            return;
+        }   
+        
+        var player = db[roomID].players[socketID];
+        var seat = player.seat;
+        
+        //Find and Remove card from players hand
+        var hand = player.hand;
+        console.log("old length", hand.length);
+        for(var i =0; i < hand.length; i++){
+            if(hand[i].value === card.value
+                && hand[i].suit === card.suit && hand[i].back === card.back){
+                    //remove this card
+                    console.log("Discarded ", card.value, card.suit, card.back);
+                    hand.splice(i, 1);
+                    db[roomID].thisTurn.hasDiscarded = true;
+                }
+        }
+        console.log("new length", hand.length);
+        // io.emit('cardDiscarded', req.body);
+    })
+
+    // ~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     function CreateNewRoom(name) {
         //Get unique room number
@@ -337,8 +385,7 @@ io.on("connect", (socket) => {
         socket.emit('newRoomCreated', {
             roomID: thisGameId,
             socketID: socket.id,
-            players: db[thisGameId].players
-
+            players: db[thisGameId].players,
         });
         //Tell socket.io this user is joining this room
         socket.join(thisGameId.toString());
@@ -366,6 +413,42 @@ io.on("connect", (socket) => {
         var roomClients = io.of('/').in(room).clients((err, data)=>{
             if (err) throw err;
             console.log("The people in room ", room, " are: ", data);
+        })
+    }
+
+    function determineTurn(roomID){
+        if(!db[roomID].currentTurn){
+            var oldTurn = null;
+            var currentTurn = db[roomID].dealer;
+            var thisTurn = {
+                hasDrawn: true,
+                hasDiscarded: false,
+            }
+        }
+        else{
+            oldTurn = db[roomID].currentTurn;
+            //Go to next player
+            if(oldTurn === db[roomID].numberOfPlayers){
+                currentTurn = 1;
+                thisTurn = {
+                    hasDrawn: false,
+                    hasDiscarded: false,
+                }
+            }
+            else{
+                currentTurn = oldTurn + 1;
+                thisTurn = {
+                    hasDrawn: false,
+                    hasDiscarded: false,
+                }
+            }
+        }
+        //save
+        db[roomID].currentTurn = currentTurn;
+        db[roomID].thisTurn = thisTurn;
+        io.to(roomID).emit('newTurn',{
+            prevPlayer: oldTurn,
+            nextPlayer: currentTurn,
         })
     }
 
