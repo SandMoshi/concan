@@ -35,6 +35,7 @@ class Game extends Component {
             player4: null,
             prevPlayer: null,
             nextPlayer: null,
+            currentTurn: null,
             // $playerID :{
             //     name: string,
             //     socketID: $playerID,
@@ -73,6 +74,10 @@ class Game extends Component {
                 });
             }
             this.updateDiscard(data.discardPile);
+            this.socket.emit('endTurn', {
+                socketID: this.props.socketID,
+                roomID: this.props.roomID,
+            });
         });
     }
 
@@ -230,10 +235,13 @@ class Game extends Component {
     turnChange = (data) => {
         var prevPlayer = data.prevPlayer;
         var nextPlayer = data.nextPlayer;
+        var currentTurn = this.state.seats[nextPlayer].position;
+
 
         this.setState({
             prevPlayer: prevPlayer,
             nextPlayer: nextPlayer,
+            currentTurn: currentTurn,
             messageToRoom: [...this.state.messageToRoom,<p>Player {prevPlayer}'s turn has ended.</p>,<p>Player {nextPlayer}'s turn has begun.</p>],
         })
 
@@ -302,8 +310,6 @@ class Game extends Component {
         }
 
         this.socket.emit("startNewGame",{roomID: this.props.roomID});
-        // this.getDealer();
-        // this.getCards();
     }
 
     pingEveryone = () =>{
@@ -481,22 +487,22 @@ class Game extends Component {
                             <p className="area--label">Discard Pile</p>
                             {this.state.discardPile}
                         </div>
-                        <div className="player playerHand seat-a seat">
+                        <div className={`player playerHand seat-a seat ${this.state.currentTurn === "A" ? " currentTurn" : ""}`}>
                                 <div className="hand-container">
                                     {this.state.hand}
                                 </div>
                         </div>
-                        <div className="player seat-b seat">
+                        <div className={`player seat-b seat ${this.state.currentTurn === "B" ? " currentTurn" : ""}`}>
                             <div className="hand-container">
                                 {this.state.playerB}
                             </div>
                         </div>
-                        <div className="player seat-c seat">
+                        <div className={`player seat-c seat ${this.state.currentTurn === "C" ? " currentTurn" : ""}`}>
                             <div className="hand-container">
                                 {this.state.playerC}
                             </div>
                         </div>
-                        <div className="player seat-d seat">
+                        <div className={`player seat-d seat ${this.state.currentTurn === "D" ? " currentTurn" : ""}`}>
                             <div className="hand-container">
                                 {this.state.playerD}
                             </div>

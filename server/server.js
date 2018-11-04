@@ -386,6 +386,29 @@ io.on("connect", (socket) => {
         io.to(roomID).emit("cardDiscarded", {sanitizedHand: sanitizedHand, socketID: socketID, discardPile:db[roomID].discardPile.slice(0,3)});
     })
 
+    socket.on('endTurn', (data) => {
+        var socketID = data.socketID;
+        var roomID = data.roomID;
+
+        //First check  that it is this current user's turn
+        if(db[roomID].players[socketID].seat !== db[roomID].currentTurn){
+            console.log("Warning: This person cannot end the turn, it is not their turn.")
+            return;
+        }
+        //Make sure that he has drawn and discarded.
+        var thisTurn = db[roomID].thisTurn;
+        if(!thisTurn.hasDrawn || !thisTurn.hasDiscarded){
+            console.log("Warning: This user has not drawn and discarded this turn. Cannot end turn.")
+            return;
+        }
+
+        //Tell all clients this person's turn has ended
+        io.to(roomID).emit('turnHasEnded', socketID);
+
+        //Go to next person
+        determineTurn(roomID);
+    })
+
     // ~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     function CreateNewRoom(name) {

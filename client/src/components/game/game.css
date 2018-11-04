@@ -317,6 +317,11 @@ div.player{
   min-height: 200px;
 }
 
+div.player.currentTurn{
+  animation: glow-yellow 5s infinite;
+  border-color: gold;
+}
+
 div.seat-a{
   grid-column: 3 / span 4;
   grid-row: 6 / span 3;
@@ -375,4 +380,32 @@ div.MessageBox{
   max-height: 150px;
   overflow: auto;
   width: 300px;
+}
+
+/* ~~~~~~~~~~~~ Key Frames (Animations) ~~~~~~~~~~~~~~~~~ */
+@keyframes glow-yellow{
+  0%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 2px yellow;
+  }
+  15%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 10px yellow;
+  }
+  30%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 15px yellow;
+  }
+  50%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 20px yellow;
+  }
+  75%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 10px yellow;
+  }
+  100%{
+    /* border: solid 2px yellow; */
+    box-shadow: 0px 0px 2px yellow;
+  }
 }
