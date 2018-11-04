@@ -94,16 +94,19 @@ class Game extends Component {
         var seatsByID = {};
         //Find their seat and what position they will be displayed as sitting in (Local Player is always shown Position A regardless of Seat #)
 
+            //First find my seat
         for(var i = 1; i < 5; i++){
-            //Find what your seat is
             if(seats[i] === this.props.socketID){
                 mySeat = i;
             }
+        }
+        //Now assign positions for each seat
+        for(var i = 1; i < 5; i++){
             seatNumber = i;
-
             //How many seats are they sitting away from you
             var seatDifference = seatNumber - mySeat;
             //Their seat letter (a/b/c/d) is...
+            console.log("seatDiff", seatDifference, "my",mySeat,"seatN",seatNumber);
             if(seatDifference === 0){
                 //Then that is me, so ignore it
                 var theirPosition = "A";
