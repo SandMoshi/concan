@@ -52,7 +52,6 @@ class Game extends Component {
 
     componentDidMount(){
         // this.cardSelected();
-        this.socket.on("cardDiscarded", this.updateDiscard);
         // this.socket.on("playerJoined", this.playerJoined);
         this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
         this.socket.on('yourHand', (data) => this.updateHand(data));
@@ -63,6 +62,18 @@ class Game extends Component {
         );
         this.socket.on('updateSeats', (seats) => this.updateSeats(seats));
         this.socket.on('newTurn', (data) => this.turnChange(data));
+        this.socket.on("cardDiscarded", (data) => {
+            if(data.hand){
+                this.updateHand(data.hand);
+            }
+            else{
+                this.updateOtherHand({
+                    hand: data.sanitizedHand,
+                    socketID: data.socketID,
+                });
+            }
+            this.updateDiscard(data.discardPile);
+        });
     }
 
     playerJoined(){
@@ -327,15 +338,16 @@ class Game extends Component {
         })
         //TODO: Wait for server to confirm
         //remove card from the DOM
-        selected[0].remove();
+        // selected[0].remove();
     }
     
     updateDiscard(data){
-        console.log(data);
-        // data = JSON.parse(data);
+        var discardPile = data.map( (card) => {
+            return <Card value={card.value} suit={card.suit} 
+                    key={`discard-${card.value}-${card.suit}`}  />
+        })
         this.setState({
-            discardValue: data.value,
-            discardsuit: data.suit
+            discardPile: discardPile,
         })
     }
     

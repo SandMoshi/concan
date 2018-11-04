@@ -23,6 +23,7 @@ db ={
                     isReady: bool,
                     seat: int,
                     hand: [],
+                    sanitizedHand: [],
                 }
             },
             numberOfPlayers: int,
@@ -371,7 +372,18 @@ io.on("connect", (socket) => {
                 }
         }
         console.log("new length", hand.length);
-        // io.emit('cardDiscarded', req.body);
+        
+        //Get sanitized version
+        var sanitizedHand = sanitizeDeck(hand);
+        
+        //Save
+        db[roomID].players[socketID].hand = hand;
+        db[roomID].players[socketID].sanitizedHand = sanitizedHand;
+        db[roomID].discardPile.unshift(card);
+        db[roomID].discardPileLength =  db[roomID].discardPile.length;
+
+        io.to(socketID).emit('cardDiscarded', {hand: hand, discardPile: db[roomID].discardPile.slice(0,3)});
+        io.to(roomID).emit("cardDiscarded", {sanitizedHand: sanitizedHand, socketID: socketID, discardPile:db[roomID].discardPile.slice(0,3)});
     })
 
     // ~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -487,6 +499,7 @@ io.on("connect", (socket) => {
         db[roomID].drawPile = drawPile;
         var drawPileColor = getDrawPileColor(roomID);
         db[roomID].drawPileColor = drawPileColor;
+        db[roomID].discardPile = [];
     
         //Emit to each player their hand and other players hidden hands
         Object.keys(db[roomID].players).forEach( (socketID) => {
