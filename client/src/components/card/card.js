@@ -7,7 +7,7 @@
     this.props.deck : [bool] -display a stack of cards imitating a deck
     this.props.facedown: [bool] -whether the card should be displayed facedown
     this.props.color: [string] -"blue" or "red" backing color
-    this.props.drawCard : ?????
+    this.props.drawCard : [func]  - the function to run onClick
     this.props.style: [style obj] -pass down styles that are set
     this.props.empty: [bool] -if card should show that deck is empty
 
@@ -60,6 +60,14 @@ class Card extends Component {
                     </div>
                 )
             }
+            if(this.props.facedown === true && (this.props.color === "empty" || !this.props.color)){ return(
+                <div className="container">
+                    <div className="card empty"  onClick={(e) => this.props.drawCard()}>
+                        <p>EMPTY</p>
+                    </div>
+                </div>
+            )
+            }
         }
         //Single Cards
         else if(this.props.empty === true){
@@ -110,7 +118,7 @@ class Card extends Component {
             )
         }
         else if( suitProp === "*"){ return(
-            <div className="card joker" data-value={"Jo"} data-suit={"*"} onClick={(e) => this.cardSelected(e)}>  
+            <div className="card joker" data-value={"Jo"} data-suit={"*"} data-back={this.props.back} onClick={(e) => this.cardSelected(e)}>  
               <p className="value">Joker</p>
               <p className="suit" style={Object.assign({}, blackInk)}>&#9733;</p>️ 
             </div>

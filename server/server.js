@@ -133,7 +133,7 @@ function chooseDealer(roomID){
     }
     var dealerSeat = db[roomID].dealer;
     var dealerID = db[roomID].seats[dealerSeat];
-    // console.log(dealerID);
+
     io.to(roomID).emit('newDealer', dealerID);
     io.to(roomID).emit('updateSeats', db[roomID].seats)
 }
@@ -165,16 +165,20 @@ function generateNewDeck(roomID){
     //Add 2 jokers
     newDeck.push({value: "Jo", suit:"*", back: "red"},{value: "Jo", suit:"*",back: "blue"});
 
-    if(!db[roomID].deck){ db[roomID].deck = null }
+    // //TODO - REMOVE FOR PRODUCTION - Max 5 cards in deck
+    // newDeck = newDeck.splice(0,32);
+
+    //Check if deck object exists
+    !db[roomID].deck ? db[roomID].deck = null : null;
+    //Save the deck
     db[roomID].deck = newDeck;
-    // return newDeck;
 }
 
-function shuffleDeck(roomID){
-    if(!db[roomID].deck){
+function shuffleDeck(roomID, providedDeck){
+    if(!db[roomID].deck && !providedDeck){
         throw new Error("Deck does not exist. Deck Cannot be shuffled.");
     }
-    var deck = db[roomID].deck;
+    var deck = providedDeck || db[roomID].deck;
     var cardsremaining = deck.length;
     var tempCard;
     var i;
@@ -191,9 +195,27 @@ function shuffleDeck(roomID){
         deck[cardsremaining] = deck[i]; //move card to end
         deck[i] = tempCard; //swap the chosen card with the one at the end
     }
-    //Save to our data structure
-    db[roomID].deck = deck;
+
     return deck;
+}
+
+function discard2DrawPile(roomID){
+    //This function will take the cards in the discard pile and shuffle them into a new draw pile
+    const discardPile = db[roomID].discardPile;
+    const newDrawPile = shuffleDeck(roomID, discardPile);
+    
+    //Save to the db
+    db[roomID].deck = newDrawPile;
+    db[roomID].drawPile = newDrawPile;
+    db[roomID].drawPileColor = getDrawPileColor(roomID);
+    db[roomID].discardPile = [];
+    db[roomID].discardPileLength = 0;
+
+}
+
+function getDrawPileColor(roomID){
+    //find color of top card
+    return db[roomID].drawPile[0].back;
 }
 
 app.get("/api/hello", (req,response) => {
@@ -251,26 +273,26 @@ app.get("/api/getPlayerName", (req, response) =>{
 //     return count;
 // }
 
-app.get("/api/drawCard", (req, response) => {
-    //get remaining deck
-    if(count[player] >= 14){
-        console.log("Your hand is full and cannot draw!");
-        response.status(901).send("Your hand is full and cannot draw!");
-    }
-    else if (hasDrawn){
-        console.log("Player has already drawn once this turn!");
-        response.status(902).send("Player has already drawn once this turn!");
-    }
-    else{
-        count = cardCount(player,"increase");
-        hasDrawn = true;
-        drawPile = drawPile;
-        console.log(nextCard);
-        var drawPileColor = getDrawPileColor();
-        var nextCard = drawPile.splice(0,1);
-        response.send({nextCard: nextCard, drawPileColor: drawPileColor});
-    }
-})
+// app.get("/api/drawCard", (req, response) => {
+//     //get remaining deck
+//     if(count[player] >= 14){
+//         console.log("Your hand is full and cannot draw!");
+//         response.status(901).send("Your hand is full and cannot draw!");
+//     }
+//     else if (hasDrawn){
+//         console.log("Player has already drawn once this turn!");
+//         response.status(902).send("Player has already drawn once this turn!");
+//     }
+//     else{
+//         count = cardCount(player,"increase");
+//         hasDrawn = true;
+//         drawPile = drawPile;
+//         console.log(nextCard);
+//         var drawPileColor = getDrawPileColor();
+//         var nextCard = drawPile.splice(0,1);
+//         response.send({nextCard: nextCard, drawPileColor: drawPileColor});
+//     }
+// })
 
 
 io.on("connect", (socket) => {
@@ -332,6 +354,8 @@ io.on("connect", (socket) => {
     })
 
     socket.on('discardCard', data =>{
+
+        console.log("data", data);
         var card = {
             value: data.value,
             suit: data.suit,
@@ -341,7 +365,7 @@ io.on("connect", (socket) => {
         var roomID = data.roomID;
         var seats = db[roomID].seats;
         //Make sure it's this users turn
-        if(!seats[db[roomID].currentTurn] === socketID){
+        if(seats[db[roomID].currentTurn] !== socketID){
             console.log("NOT THE USER WHO IS REQUESTING the DISCARD's TURN!");
             return;
         }
@@ -369,6 +393,7 @@ io.on("connect", (socket) => {
                     console.log("Discarded ", card.value, card.suit, card.back);
                     hand.splice(i, 1);
                     db[roomID].thisTurn.hasDiscarded = true;
+                    console.log('set thisTurn.hasDiscarded to true');
                 }
         }
         console.log("new length", hand.length);
@@ -397,6 +422,7 @@ io.on("connect", (socket) => {
         }
         //Make sure that he has drawn and discarded.
         var thisTurn = db[roomID].thisTurn;
+        console.log(thisTurn);
         if(!thisTurn.hasDrawn || !thisTurn.hasDiscarded){
             console.log("Warning: This user has not drawn and discarded this turn. Cannot end turn.")
             return;
@@ -407,6 +433,60 @@ io.on("connect", (socket) => {
 
         //Go to next person
         determineTurn(roomID);
+    })
+
+    socket.on('drawCard', data => {
+        var {socketID, roomID} = data;
+        var seats = db[roomID].seats;
+        //First Make sure it's this person's turn
+        if(!seats[db[roomID].currentTurn] === socketID){
+            console.log("NOT THE USER WHO IS REQUESTING the DISCARD's TURN!");
+            return;
+        }
+        //Make sure they have not drawn already
+        if(db[roomID].thisTurn.hasDrawn){
+            console.log(socketID + " HAS ALREADY DRAWN THIS TURN!")
+            return;
+        }
+        //Make sure they have not yet discarded
+        if(db[roomID].thisTurn.hasDiscarded){
+            console.log("USER HAS ALREADY DISCARDED THIS TURN!")
+            return;
+        }   
+        //Make sure there are cards left in the deck
+        if(db[roomID].deck.length < 1){
+            console.log("Deck is Empty. cards left:", db[roomID].deck.length);
+            return;
+        }
+
+        console.log(db[roomID].deck.length);
+
+        //Grab the next card from the deck
+        console.log('starting to draw a card');
+        var drawnCard = db[roomID].deck.splice(0,1)[0];
+        var hand = db[roomID].players[socketID].hand
+
+        hand.push(drawnCard);
+        var sanitizedHand = sanitizeDeck(hand);
+        
+        //save
+        db[roomID].players[socketID].hand = hand;
+        db[roomID].players[socketID].sanitizedHand = sanitizedHand;
+        db[roomID].drawPileColor = db[roomID].drawPile[0] ? db[roomID].drawPile[0].back : 'empty';
+        db[roomID].thisTurn.hasDrawn = true;
+
+        console.log('emitting card that was drawn back to user');
+        //emit to client
+        io.to(socketID).emit('cardDrawn', {hand: hand, drawPileColor: db[roomID].drawPileColor});
+        io.to(roomID).emit('cardDrawn', {sanitizedHand: sanitizedHand, socketID: socketID, drawPileColor:db[roomID].drawPileColor});
+
+        //If required, Shuffle Discarded Cards into Draw Pile
+        if(db[roomID].deck.length < 1){ 
+            console.log('Deck is Empty. cards left:', db[roomID].deck.length);
+            discard2DrawPile(roomID);
+            io.to(roomID).emit('drawPileColorUpdate', db[roomID].drawPileColor);
+            io.to(roomID).emit('discardPileUpdate', db[roomID].discardPile.slice(0,3));
+        }
     })
 
     // ~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -490,7 +570,9 @@ io.on("connect", (socket) => {
     function dealCards(roomID){
         var deck = generateNewDeck(roomID);
         var shuffledDeck = shuffleDeck(roomID);
-        // console.log("shuffledDeck:", shuffledDeck);
+
+        //Save shuffleddeck to the db
+        db[roomID].deck = shuffledDeck;
     
         //Deal to each player
             //Start with dealer's seat
@@ -534,10 +616,6 @@ io.on("connect", (socket) => {
     
         //Emit public data to room
         io.to(roomID).emit("drawPileColorUpdate", db[roomID].drawPileColor)
-    
-        // io.to(roomID).emit("dbUpdate", {
-        //    drawPileColor: db[roomID].drawPileColor, 
-        // })
     }
     
     function sanitizeDeck(deck){
@@ -546,11 +624,6 @@ io.on("connect", (socket) => {
         })
         // console.log(sanitizedDeck);
         return sanitizedDeck;
-    }
-    
-    function getDrawPileColor(roomID){
-        //find color of top card
-        return db[roomID].drawPile[0].back;
     }
 })
 

@@ -13,7 +13,6 @@ class Game extends Component {
         this.startNewGame = this.startNewGame.bind(this);
         this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
-        this.drawCard = this.drawCard.bind(this);
         this.getPlayer = this.getPlayer.bind(this);
         this.playerJoined = this.playerJoined.bind(this);
         this.state = {
@@ -55,15 +54,44 @@ class Game extends Component {
         // this.cardSelected();
         // this.socket.on("playerJoined", this.playerJoined);
         this.socket.on('newDealer', (dealerID) => this.newDealer(dealerID));
+        //yourHand
         this.socket.on('yourHand', (data) => this.updateHand(data));
+        //drawPileColorUpdate
         this.socket.on('drawPileColorUpdate', (color) => {this.updateDrawPile(color)})
+        //discardPileUpdate
+        this.socket.on('discardPileUpdate', (discardPile) => {
+            this.updateDiscard(discardPile);
+        })
+        //otherHand
         this.socket.on('otherHand', (data) => 
         {console.log('OtherHand Received!', data);
         this.updateOtherHand(data)}
         );
+        //updateSeats
         this.socket.on('updateSeats', (seats) => this.updateSeats(seats));
+        //newTurn
         this.socket.on('newTurn', (data) => this.turnChange(data));
-        this.socket.on("cardDiscarded", (data) => {
+        //cardDiscarded
+        this.socket.on('cardDiscarded', (data) => {
+            if(data.hand){
+                this.updateHand(data.hand);
+                this.updateDiscard(data.discardPile);
+                console.log("END THIS TURN!");
+                this.socket.emit('endTurn', {
+                    socketID: this.props.socketID,
+                    roomID: this.props.roomID,
+                });
+            }
+            else{
+                this.updateOtherHand({
+                    hand: data.sanitizedHand,
+                    socketID: data.socketID,
+                });
+                this.updateDiscard(data.discardPile);
+            }
+        });
+        //cardDrawn
+        this.socket.on('cardDrawn', (data) => {
             if(data.hand){
                 this.updateHand(data.hand);
             }
@@ -71,14 +99,10 @@ class Game extends Component {
                 this.updateOtherHand({
                     hand: data.sanitizedHand,
                     socketID: data.socketID,
-                });
+                })
             }
-            this.updateDiscard(data.discardPile);
-            this.socket.emit('endTurn', {
-                socketID: this.props.socketID,
-                roomID: this.props.roomID,
-            });
-        });
+            this.updateDrawPile(data.drawPileColor);
+        })
     }
 
     playerJoined(){
@@ -138,8 +162,7 @@ class Game extends Component {
     }
 
     updateDrawPile = (color) => {
-
-        var drawPile = <Card deck={true} facedown={true} color={color} drawCard={this.drawCard} />;
+        var drawPile = <Card deck={true} facedown={true} color={color} drawCard={this.requestDrawCard} />;
 
         console.log("drawPile", drawPile);
 
@@ -329,9 +352,7 @@ class Game extends Component {
             alert("You must discard exactly one card.");
             return;
         }
-        this.socket.emit('confirmCardDrawn', this.props.socketID);
 
-        //TODO make sure a card has been drawn first before discarding !!!!!!!!!!!!!!!!!!!!!!!!!
         console.log(selected[0]);
         var faceValue = selected[0].dataset.value;
         var suitValue = selected[0].dataset.suit;
@@ -345,12 +366,14 @@ class Game extends Component {
             socketID: this.props.socketID,
             roomID: this.props.roomID,
         })
-        //TODO: Wait for server to confirm
-        //remove card from the DOM
-        // selected[0].remove();
+
+        //Listener, in a seperate function, will determine if this action is successful and move this card to the discard pile.
     }
     
     updateDiscard(data){
+        //Updates the discard pile with the last few discarded cards
+        //Note, server only sends the most recent 3 discards for display
+
         var discardPile = data.map( (card) => {
             return <Card value={card.value} suit={card.suit} 
                     key={`discard-${card.value}-${card.suit}`}  />
@@ -360,6 +383,32 @@ class Game extends Component {
         })
     }
     
+    requestDrawCard = () => {
+        console.log(this.props.socketID , 'requesting to draw a card !');
+        //Rquest to draw a card
+        this.socket.emit('drawCard', {socketID: this.props.socketID, roomID: this.props.roomID});
+
+        //Listener, in a seperate function, will determine if this action is successful and move this card to the discard pile
+
+        // .then(data => {
+        //     console.log(data);
+        //     data = JSON.parse(data);
+        //     //add new card to hand
+        //     var nextCard = data.nextCard[0];
+        //     let timestamp = Date.now();
+        //     var hand = this.state.hand;
+        //     var card = <Card key={timestamp} value={nextCard.value} suit={nextCard.suit} />;
+        //     hand.push(card);
+
+        //     //update the pile color
+        //     var drawPileColor  = data.drawPileColor;
+        //     var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
+            
+        //     //update state to force render
+        //     this.setState({hand: hand, drawPile: drawPile});
+        // })
+    }
+
     getPlayer(){
         fetch("http://localhost:3000/api/getPlayerName")
             .then(response => {
@@ -410,46 +459,8 @@ class Game extends Component {
 
             var drawPileColor = JSON.parse(data).drawPileColor;
 
-            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
+            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.requestDrawCard}/>
             this.setState({hand : hand, drawPile: drawPile});
-        })
-    }
-
-    drawCard(){
-        fetch("http://localhost:3000/api/drawCard")
-        .then(response => {
-            // console.log(response);
-            // console.log(response.ok);
-            if(!response.ok){
-                if(response.status === 901){
-                    alert("Cannot draw card right now. You cannot have more than 14 cards in your hand.");
-                }
-                if(response.status === 902){
-                    alert("Player has already drawn a card this turn!");
-                }
-                return;
-            }
-            return response.text();
-        })
-        .then(data => {
-            console.log(data);
-            data = JSON.parse(data);
-            //add new card to hand
-            var nextCard = data.nextCard[0];
-            let timestamp = Date.now();
-            var hand = this.state.hand;
-            var card = <Card key={timestamp} value={nextCard.value} suit={nextCard.suit} />;
-            hand.push(card);
-
-            //update the pile color
-            var drawPileColor  = data.drawPileColor;
-            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
-            
-            //update state to force render
-            this.setState({hand: hand, drawPile: drawPile});
-        })
-        .catch(()=>{
-            // do nothing
         })
     }
 
@@ -477,7 +488,7 @@ class Game extends Component {
                             <br />
                             <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
                             <br />
-                            <button className="draw" onClick={() => this.drawCard()}>Draw Card</button>
+                            <button className="draw" onClick={() => this.requestDrawCard()}>Draw Card</button>
                             <br />
                         </div>
                     </div>
