@@ -11,9 +11,7 @@ class Game extends Component {
         this.socket = null;
         this.moveCard = this.moveCard.bind(this);
         this.startNewGame = this.startNewGame.bind(this);
-        this.getCards = this.getCards.bind(this);
         this.updateDiscard = this.updateDiscard.bind(this);
-        this.getPlayer = this.getPlayer.bind(this);
         this.playerJoined = this.playerJoined.bind(this);
         this.state = {
             hand: [],
@@ -249,7 +247,7 @@ class Game extends Component {
         console.log("data:", hand);
         var myHand = [];
         hand.forEach( (card, index) => {
-            var card = <Card value={card.value} suit={card.suit} back={card.back}  key={`myhand-${card.value}${card.suit}-${index}`}/>;
+            var card = <Card value={card.value} suit={card.suit} back={card.back} rank={card.rank} points={card.points} key={`myhand-${card.value}${card.suit}-${index}`}/>;
             myHand.push(card);
         })
         
@@ -366,8 +364,6 @@ class Game extends Component {
             socketID: this.props.socketID,
             roomID: this.props.roomID,
         })
-
-        //Listener, in a seperate function, will determine if this action is successful and move this card to the discard pile.
     }
     
     updateDiscard(data){
@@ -375,7 +371,7 @@ class Game extends Component {
         //Note, server only sends the most recent 3 discards for display
 
         var discardPile = data.map( (card) => {
-            return <Card value={card.value} suit={card.suit} 
+            return <Card value={card.value} suit={card.suit} rank={card.rank} points={card.points} 
                     key={`discard-${card.value}-${card.suit}`}  />
         })
         this.setState({
@@ -387,45 +383,8 @@ class Game extends Component {
         console.log(this.props.socketID , 'requesting to draw a card !');
         //Rquest to draw a card
         this.socket.emit('drawCard', {socketID: this.props.socketID, roomID: this.props.roomID});
-
-        //Listener, in a seperate function, will determine if this action is successful and move this card to the discard pile
-
-        // .then(data => {
-        //     console.log(data);
-        //     data = JSON.parse(data);
-        //     //add new card to hand
-        //     var nextCard = data.nextCard[0];
-        //     let timestamp = Date.now();
-        //     var hand = this.state.hand;
-        //     var card = <Card key={timestamp} value={nextCard.value} suit={nextCard.suit} />;
-        //     hand.push(card);
-
-        //     //update the pile color
-        //     var drawPileColor  = data.drawPileColor;
-        //     var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.drawCard}/>
-            
-        //     //update state to force render
-        //     this.setState({hand: hand, drawPile: drawPile});
-        // })
     }
 
-    getPlayer(){
-        fetch("http://localhost:3000/api/getPlayerName")
-            .then(response => {
-                if(!response.ok){
-                    alert("There was an error. Code 002");
-                    return;
-                }
-                else{
-                    return response.text();      
-                }
-            })
-            .then(data => {
-                data = JSON.parse(data);
-                var playerName = data.playerName;
-                this.setState({playerName : playerName});
-            })
-    }
 
     newDealer = (dealerID) => {
         console.log("new dealer is:" + dealerID);
@@ -439,29 +398,54 @@ class Game extends Component {
         })
     }
 
-    getCards(){
-        fetch("http://localhost:3000/api/dealCards")
-        .then(results => {
-            return results.text(); 
+    placeCardSet = () => {
+        const selected = this.findSelectedCards();
+        //Make sure enough cards are selected
+        if(selected.length < 3){
+            alert('You need to drop at least 3 cards');
+            return;
+        }
+
+        const cardData = selected.map( card => {
+            return {
+                value: card.dataset.value, 
+                suit: card.dataset.suit, 
+                back: card.dataset.back,
+                rank: card.dataset.rank,
+                points: card.dataset.points,
+            }
         })
-        .then(data => {
-            var newArray = JSON.parse(data).hand;
-            // console.log(newArray);
-            let timestamp = Date.now();
 
-            let hand = newArray.map((card) => {
-                // console.log(card);
-                ++timestamp;
-                return(
-                    <Card key={timestamp} value={card.value} suit={card.suit}  />
-                )
-            })
 
-            var drawPileColor = JSON.parse(data).drawPileColor;
 
-            var drawPile = <Card deck={true} facedown={true} color={drawPileColor} drawCard={this.requestDrawCard}/>
-            this.setState({hand : hand, drawPile: drawPile});
+        //Check if all the suits are the same
+        const suitCheck = cardData.every( (card) => {
+            return card.suit === cardData[0].suit;
+        });
+
+        console.log('cardData', cardData);
+
+        //Check if the cards are in a sequence
+        cardData.sort( (a,b) => {
+            //Check for joker
+            if(a.rank == 15 || b.rank == 15){
+                return 0;
+            }
+            //Check for Ace with a 2 or 3
+            if( (a.rank == 14 && (b.rank < 8))){
+                return -1; 
+            }
+            if( (b.rank == 14 && (a.rank < 8))){
+                return 1; 
+            }
+            return a.rank - b.rank
         })
+
+        console.log("sorted cards", cardData);
+    }
+
+    convert2Number = (value) => {
+
     }
 
     render(){
@@ -489,6 +473,7 @@ class Game extends Component {
                             <button className="discard" onClick={() => this.discardSelected()}>Discard</button>
                             <br />
                             <button className="draw" onClick={() => this.requestDrawCard()}>Draw Card</button>
+                            <button className="place" onClick={() => this.placeCardSet()}>Place Set</button>
                             <br />
                         </div>
                     </div>

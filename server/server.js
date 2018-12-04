@@ -24,6 +24,7 @@ db ={
                     seat: int,
                     hand: [],
                     sanitizedHand: [],
+                    hasOpened: bool,
                 }
             },
             numberOfPlayers: int,
@@ -146,16 +147,17 @@ function generateNewDeck(roomID){
     var index = 0;
     var color = "red";
     var suits = ["h","d","c","s"];
+    var rank, points;
     for(k; k < 2; k++){
         for(j; j < 4; j++){
             for(i; i < 15; i++){
-                if(i<11)   var face = i.toString();
-                else if(i===11) face = "J";
-                else if(i===12) face = "Q";
-                else if(i===13) face = "K";
-                else if(i===14) face = "A";
+                if(i<11) {var face = i.toString(); rank = i; points = i;}
+                else if(i===11) {face = "J"; rank = 11; points = 10;}
+                else if(i===12) {face = "Q"; rank = 12; points = 10;}
+                else if(i===13) {face = "K"; rank = 13; points = 10;}
+                else if(i===14) {face = "A"; rank = 14; points = 10;}
                 if(k === 1){ color = "blue" }
-                newCard = {value: face, suit:suits[j], back: color}
+                newCard = {value: face, suit:suits[j], back: color, rank: rank, points: points};
                 newDeck.push(newCard);
             };
             i = 2;
@@ -163,7 +165,7 @@ function generateNewDeck(roomID){
         i = 2; j = 0;
     }
     //Add 2 jokers
-    newDeck.push({value: "Jo", suit:"*", back: "red"},{value: "Jo", suit:"*",back: "blue"});
+    newDeck.push({value: "Jo", suit:"*", back: "red", rank:15, points:50},{value: "Jo", suit:"*",back: "blue", rank:15, points:50});
 
     // //TODO - REMOVE FOR PRODUCTION - Max 5 cards in deck
     // newDeck = newDeck.splice(0,32);

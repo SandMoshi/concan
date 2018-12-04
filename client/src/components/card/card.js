@@ -78,7 +78,7 @@ class Card extends Component {
               )
         }
         else if( suitProp === "" ){ return(
-            <div className="card" data-value="" data-suit="" >
+            <div className="card" data-value="" data-suit="" data-rank="" data-points="" >
             </div>
             )
         }
@@ -90,35 +90,35 @@ class Card extends Component {
         }
         //Single Face Up Cards
         else if( suitProp === "h"){ return(
-            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back} onClick={(e) => this.cardSelected(e)}>
+            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  data-rank={this.props.rank} data-points={this.props.points} onClick={(e) => this.cardSelected(e)}>
               <p className="value">{this.props.value}</p>
               <p className="suit">️♥</p>️ 
             </div>
             )
         }
         else if( suitProp === "d"){ return(
-            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  onClick={(e) => this.cardSelected(e)}>
+            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  data-rank={this.props.rank} data-points={this.props.points}  onClick={(e) => this.cardSelected(e)}>
               <p className="value" >{this.props.value}</p>
               <p className="suit" >♦️</p>️ 
             </div>
             )
         }
          else if( suitProp === "s"){ return(
-            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  onClick={(e) => this.cardSelected(e)}>
+            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  data-rank={this.props.rank} data-points={this.props.points}  onClick={(e) => this.cardSelected(e)}>
               <p className="value" >{this.props.value}</p>
               <p className="suit" style={Object.assign({}, blackInk)}>♠️</p>️ 
             </div>
             )
         }
         else if( suitProp === "c"){ return(
-            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back}  onClick={(e) => this.cardSelected(e)}>              
+            <div className="card" data-value={this.props.value} data-suit={suitProp} data-back={this.props.back} data-rank={this.props.rank} data-points={this.props.points} onClick={(e) => this.cardSelected(e)}>              
               <p className="value" >{this.props.value}</p>
               <p className="suit" style={Object.assign({}, blackInk)}>♣️</p>️ 
             </div>
             )
         }
         else if( suitProp === "*"){ return(
-            <div className="card joker" data-value={"Jo"} data-suit={"*"} data-back={this.props.back} onClick={(e) => this.cardSelected(e)}>  
+            <div className="card joker" data-value={"Jo"} data-suit={"*"} data-back={this.props.back}  data-rank={this.props.rank} data-points={this.props.points} onClick={(e) => this.cardSelected(e)}>  
               <p className="value">Joker</p>
               <p className="suit" style={Object.assign({}, blackInk)}>&#9733;</p>️ 
             </div>
