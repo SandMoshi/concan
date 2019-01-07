@@ -406,7 +406,7 @@ class Game extends Component {
             return;
         }
 
-        const cardData = selected.map( card => {
+        var cardData = selected.map( card => {
             return {
                 value: card.dataset.value, 
                 suit: card.dataset.suit, 
@@ -416,20 +416,153 @@ class Game extends Component {
             }
         })
 
-
+        cardData = this.sortCardsByRank(cardData);
 
         //Check if all the suits are the same
-        const suitCheck = cardData.every( (card) => {
-            return card.suit === cardData[0].suit;
-        });
+        const suitCheck = ( () => {
+            var ans = null;
+            var j = 0; //The reference card
+            for(var i = 0; i < cardData.length; i++){
+                var card = cardData[i];
+                //allow joker
+                console.log(i);
+                if(card.suit === '*'){
+                    j++;
+                    continue;
+                }
+                else if( ans === false){
+                    break;
+                }
+                else{
+                    ans = (card.suit === cardData[j].suit);
+                }
+            }
+            return ans;
+        })();
 
-        console.log('cardData', cardData);
+        
+        //Check if all the suits are different (no duplicate suits)
+        const allDiffSuit = (() => {
+            var ans = true;
+            ["h","d","c","s"].forEach( (suit) => {
+                if(cardData.filter( card => {return(card.suit === suit)}).length > 1){
+                    ans = false;
+                }
+            })
+            console.log('allDiffSuit:', ans);
+            return ans;
+        })();
+
+
+        //Check if all the face valus the same
+        const sameRank = ( () => {
+            var ans = null;
+            var j = 0; //The reference card
+            for(var i = 0; i < cardData.length; i++){
+                var card = cardData[i];
+                //allow joker
+                console.log(i);
+                if(card.suit === '*'){
+                    j++;
+                    continue;
+                }
+                else if( ans === false){
+                    break;
+                }
+                else{
+                    ans = (card.rank === cardData[j].rank);
+                }
+            }
+            return ans;
+        })();
+
+        console.log('cardData', cardData, 'suitCheck', suitCheck);        
 
         //Check if the cards are in a sequence
+        var inSequence = true; //default starting value
+        for(var i = 0; i < cardData.length; i++){
+            //First see how many Jokers we have
+            var jokerPot = 0;
+            if(cardData[i].rank == 15){ jokerPot++};
+            if(i === 0){ continue } //don't start comparison yet;
+            //Make sure rank is 1 more than prev card
+            if(cardData[i].rank != parseInt(cardData[i-1].rank, 10) + 1 && cardData[i].rank !== 15){
+                //Check for Ace - 2
+                if(cardData[i-1].rank == 14 && cardData[i].rank == 2){
+                    //do nothing since it's Ace-2
+                    continue;
+                }
+                else{
+                    //See if the difference is less than the jokerPot
+                    let diff = cardData[i].rank - parseInt(cardData[i-1].rank, 10);
+                    if(diff <= jokerPot){
+                        //use joker
+                        jokerPot = jokerPot - diff;
+                        continue;
+                    } 
+                    //These cards are not in sequence
+                    inSequence = false;
+                    break;
+                }
+            }
+        }
+
+        console.log("sorted cards", cardData, 'insequence ', inSequence);
+
+        //Determine which type of set the user is trying to play and check for errors
+        if(suitCheck && !inSequence){
+            //Throw error if player is going for same suit but not in sequence
+            alert('The cards must be in sequence! \n e.g. Ace-2-3 or 7-8-9')
+            return;
+        }
+        else if (suitCheck && inSequence){
+            //Tell server user is trying to place down a sequence set
+            let object2emit = {
+                socketID: this.props.socketID, 
+                roomID: this.props.roomID, 
+                cardData: cardData,
+                actionType: 'sequenceSet',
+            };
+            this.socket.emit('placeSet', object2emit);
+            console.log("Placing Set Allowed --- sent to server!");
+        }
+        else if(!suitCheck && !sameRank){
+            //Throw error 
+            // since we are unsure what kind of hand player is trying to play
+            alert('You can only play one of two kinds of sets: \n 1) A set that has runners of the same suit \n or \n 2) 3 or 4 cards of the same face value but different suits');
+            return;
+        }
+        else if (!allDiffSuit && sameRank){
+            //Throw error since one or more cards must be a duplicate
+            alert('If trying to play a 3 or 4 of a kind... each card must be a different suit!');
+        }
+        else if (allDiffSuit && sameRank){
+            //Tell server user is trying to place down a sequence set
+            let object2emit = {
+                socketID: this.props.socketID, 
+                roomID: this.props.roomID, 
+                cardData: cardData,
+                actionType: 'rankSet',
+            };
+            this.socket.emit('placeSet', object2emit);
+            console.log("Placing Set Allowed --- sent to server!");
+        }
+        else{
+            //No errors found
+            console.warn("Unhandled situation!!! NEED TO CODE FOR THIS SITUATION");
+            console.table(allDiffSuit, suitCheck, inSequence, sameRank);
+        }
+    }
+
+    sortCardsByRank = (cardData) => {
+        //Sort the cards by rank
         cardData.sort( (a,b) => {
             //Check for joker
-            if(a.rank == 15 || b.rank == 15){
-                return 0;
+            if(a.rank == 15){
+                return -1; //move to beginning
+            }
+            if(b.rank == 15){
+                return 1;
             }
             //Check for Ace with a 2 or 3
             if( (a.rank == 14 && (b.rank < 8))){
@@ -440,12 +573,7 @@ class Game extends Component {
             }
             return a.rank - b.rank
         })
-
-        console.log("sorted cards", cardData);
-    }
-
-    convert2Number = (value) => {
-
+        return cardData;
     }
 
     render(){
